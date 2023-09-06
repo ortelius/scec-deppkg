@@ -28,7 +28,7 @@ paths:
         - "*/*"
       description: Get a list of DepPkgs.
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -44,7 +44,7 @@ paths:
         - application/json
       description: Create a new DepPkg and persist it
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -67,11 +67,11 @@ paths:
         - "*/*"
       description: Get a deppkg based on the _key or name.
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Get a DepPkg
       tags:
-      - deppkg
+        - deppkg
 swagger: "2.0"

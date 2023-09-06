@@ -18,15 +18,15 @@ import (
 var logger = database.InitLogger()
 var dbconn = database.InitializeDB()
 
-// GetDeppkgs godoc
-// @Summary Get a List of Deppkgs
-// @Description Get a list of Deppkgs.
-// @Tags Deppkgs
+// GetDepPkgs godoc
+// @Summary Get a List of DepPkgs
+// @Description Get a list of DepPkgs.
+// @Tags DepPkgs
 // @Accept */*
 // @Produce json
 // @Success 200
 // @Router /msapi/deppkg [get]
-func GetDeppkgs(c *fiber.Ctx) error {
+func GetDepPkgs(c *fiber.Ctx) error {
 
 	var cursor driver.Cursor       // db cursor for rows
 	var err error                  // for error handling
@@ -44,18 +44,18 @@ func GetDeppkgs(c *fiber.Ctx) error {
 
 	defer cursor.Close() // close the cursor when returning from this function
 
-	deppkgs := model.NewDeppkgs() // define a list of deppkgs to be returned
+	deppkgs := model.NewPackages() // define a list of deppkgs to be returned
 
 	for cursor.HasMore() { // loop thru all of the documents
 
-		deppkg := model.NewDeppkg() // fetched dependency package
-		var meta driver.DocumentMeta           // data about the fetch
+		deppkg := model.NewPackage() // fetched dependency package
+		var meta driver.DocumentMeta // data about the fetch
 
 		// fetch a document from the cursor
 		if meta, err = cursor.ReadDocument(ctx, deppkg); err != nil {
 			logger.Sugar().Errorf("Failed to read document: %v", err)
 		}
-		deppkgs.Deppkgs = append(deppkgs.Deppkgs, deppkg)       // add the Dependency to the list
+		deppkgs.Packages = append(deppkgs.Packages, deppkg)                  // add the Dependency to the list
 		logger.Sugar().Infof("Got doc with key '%s' from query\n", meta.Key) // log the key
 	}
 
@@ -63,14 +63,14 @@ func GetDeppkgs(c *fiber.Ctx) error {
 }
 
 // GetDepkkg godoc
-// @Summary Get a Deppkg
+// @Summary Get a DepPkg
 // @Description Get a deppkg based on the _key or name.
 // @Tags deppkg
 // @Accept */*
 // @Produce json
 // @Success 200
 // @Router /msapi/deppkg/:key [get]
-func GetDeppkg(c *fiber.Ctx) error {
+func GetDepPkg(c *fiber.Ctx) error {
 
 	var cursor driver.Cursor       // db cursor for rows
 	var err error                  // for error handling
@@ -93,7 +93,7 @@ func GetDeppkg(c *fiber.Ctx) error {
 
 	defer cursor.Close() // close the cursor when returning from this function
 
-	user := model.NewDeppkg() // define a dependency package to be returned
+	deppkg := model.NewPackage() // define a dependency package to be returned
 
 	if cursor.HasMore() { // deppkg found
 		var meta driver.DocumentMeta // data about the fetch
@@ -114,20 +114,20 @@ func GetDeppkg(c *fiber.Ctx) error {
 	return c.JSON(deppkg) // return the deppkg in JSON format
 }
 
-// NewDeppkg godoc
-// @Summary Create a Deppkg
-// @Description Create a new Deppkg and persist it
+// NewDepPkg godoc
+// @Summary Create a DepPkg
+// @Description Create a new DepPkg and persist it
 // @Tags deppkg
 // @Accept application/json
 // @Produce json
 // @Success 200
 // @Router /msapi/deppkg [post]
-func NewDeppkg(c *fiber.Ctx) error {
+func NewDepPkg(c *fiber.Ctx) error {
 
 	var err error                  // for error handling
 	var meta driver.DocumentMeta   // data about the document
 	var ctx = context.Background() // use default database context
-	deppkg := new(model.Deppkg)    // define a deppkg to be returned
+	deppkg := model.NewPackage()   // define a deppkg to be returned
 
 	if err = c.BodyParser(deppkg); err != nil { // parse the JSON into the deppkg object
 		return c.Status(503).Send([]byte(err.Error()))
@@ -150,12 +150,12 @@ func NewDeppkg(c *fiber.Ctx) error {
 func setupRoutes(app *fiber.App) {
 
 	app.Get("/swagger/*", swagger.HandlerDefault) // handle displaying the swagger
-	app.Get("/msapi/deppkg", GetDeppkgs)          // list of deppkgs
-	app.Get("/msapi/deppkg/:key", GetDeppkg)      // single deppkg based on name or key
-	app.Post("/msapi/deppkg", NewDeppkg)          // save a single deppkg
+	app.Get("/msapi/deppkg", GetDepPkgs)          // list of deppkgs
+	app.Get("/msapi/deppkg/:key", GetDepPkg)      // single deppkg based on name or key
+	app.Post("/msapi/deppkg", NewDepPkg)          // save a single deppkg
 }
 
-// @title Ortelius v11 Deppkg Microservice
+// @title Ortelius v11 DepPkg Microservice
 // @version 11.0.0
 // @description RestAPI for the deppkg Object
 // @description ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)

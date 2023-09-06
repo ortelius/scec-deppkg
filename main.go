@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 // Ortelius v11 package Microservice that handles creating and retrieving Dependencies
-=======
-// Ortelius v11 deppkg Microservice that handles creating and retrieving Dependencies
->>>>>>> a607e1d (update object names)
 package main
 
 import (

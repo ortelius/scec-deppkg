@@ -25,39 +25,62 @@ paths:
   /msapi/deppkg:
     get:
       consumes:
+<<<<<<< HEAD
         - "*/*"
+=======
+      - '*/*'
+>>>>>>> f0d8429 (update for object type)
       description: Get a list of DepPkgs.
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
       summary: Get a List of DepPkgs
       tags:
+<<<<<<< HEAD
         - DepPkgs
     post:
       consumes:
         - application/json
+=======
+      - DepPkgs
+    post:
+      consumes:
+      - application/json
+>>>>>>> f0d8429 (update for object type)
       description: Create a new DepPkg and persist it
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
       summary: Create a DepPkg
       tags:
+<<<<<<< HEAD
         - deppkg
   /msapi/deppkg/:key:
     get:
       consumes:
         - "*/*"
+=======
+      - deppkg
+  /msapi/deppkg/:key:
+    get:
+      consumes:
+      - '*/*'
+>>>>>>> f0d8429 (update for object type)
       description: Get a deppkg based on the _key or name.
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
       summary: Get a DepPkg
       tags:
+<<<<<<< HEAD
         - deppkg
+=======
+      - deppkg
+>>>>>>> f0d8429 (update for object type)
 swagger: "2.0"

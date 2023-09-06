@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "swagger": "2.0",
   "info": {
     "description": "RestAPI for the deppkg Object\n![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)\n![license](https://img.shields.io/github/license/ortelius/scec-deppkg)\n\n![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)\n[![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)\n![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)\n[![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)\n\n![Discord](https://img.shields.io/discord/722468819091849316)",
@@ -57,83 +56,55 @@
           }
         }
       }
-=======
-    "swagger": "2.0",
-    "info": {
-        "description": "RestAPI for the deppkg Object\n![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)\n![license](https://img.shields.io/github/license/ortelius/scec-deppkg)\n\n![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)\n[![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)\n![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)\n[![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)\n\n![Discord](https://img.shields.io/discord/722468819091849316)",
-        "title": "Ortelius v11 DepPkg Microservice",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "Ortelius Google Group",
-            "email": "ortelius-dev@googlegroups.com"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
-        "version": "11.0.0"
     },
-    "host": "localhost:3000",
-    "basePath": "/msapi/deppkg",
-    "paths": {
-        "/msapi/deppkg": {
-            "get": {
-                "description": "Get a list of DepPkgs.",
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "DepPkgs"
-                ],
-                "summary": "Get a List of DepPkgs",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new DepPkg and persist it",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "deppkg"
-                ],
-                "summary": "Create a DepPkg",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/msapi/deppkg/:key": {
-            "get": {
-                "description": "Get a deppkg based on the _key or name.",
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "deppkg"
-                ],
-                "summary": "Get a DepPkg",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "11.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/msapi/deppkg",
+  "paths": {
+    "/msapi/deppkg": {
+      "get": {
+        "description": "Get a list of DepPkgs.",
+        "consumes": ["*/*"],
+        "produces": ["application/json"],
+        "tags": ["DepPkgs"],
+        "summary": "Get a List of DepPkgs",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
         }
->>>>>>> f0d8429 (update for object type)
+      },
+      "post": {
+        "description": "Create a new DepPkg and persist it",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["deppkg"],
+        "summary": "Create a DepPkg",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/msapi/deppkg/:key": {
+      "get": {
+        "description": "Get a deppkg based on the _key or name.",
+        "consumes": ["*/*"],
+        "produces": ["application/json"],
+        "tags": ["deppkg"],
+        "summary": "Get a DepPkg",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
+  }
 }

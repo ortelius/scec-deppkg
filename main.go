@@ -1,4 +1,4 @@
-// Ortelius v11 deppkg Microservice that handles creating and retrieving Dependencies
+// Ortelius v11 package Microservice that handles creating and retrieving Dependencies
 package main
 
 import (
@@ -18,24 +18,24 @@ import (
 var logger = database.InitLogger()
 var dbconn = database.InitializeDB("sbom")
 
-// GetDepPkgs godoc
-// @Summary Get a List of DepPkgs
-// @Description Get a list of DepPkgs.
-// @Tags DepPkgs
+// GetPackages godoc
+// @Summary Get a List of Packages
+// @Description Get a list of Packages.
+// @Tags Packages
 // @Accept */*
 // @Produce json
 // @Success 200
-// @Router /msapi/deppkg [get]
-func GetDepPkgs(c *fiber.Ctx) error {
+// @Router /msapi/package [get]
+func GetPackages(c *fiber.Ctx) error {
 
 	var cursor driver.Cursor       // db cursor for rows
 	var err error                  // for error handling
 	var ctx = context.Background() // use default database context
 
-	// query all the deppkg in the collection
-	aql := `FOR deppkg in evidence
-			FILTER (deppkg.objtype == 'deppkg')
-			RETURN deppkg`
+	// query all the package in the collection
+	aql := `FOR package in evidence
+			FILTER (package.objtype == 'package')
+			RETURN package`
 
 	// execute the query with no parameters
 	if cursor, err = dbconn.Database.Query(ctx, aql, nil); err != nil {
@@ -44,33 +44,33 @@ func GetDepPkgs(c *fiber.Ctx) error {
 
 	defer cursor.Close() // close the cursor when returning from this function
 
-	deppkgs := model.NewPackages() // define a list of deppkgs to be returned
+	packages := model.NewPackages() // define a list of packages to be returned
 
 	for cursor.HasMore() { // loop thru all of the documents
 
-		deppkg := model.NewPackage() // fetched dependency package
+		pkg := model.NewPackage()    // fetched dependency package
 		var meta driver.DocumentMeta // data about the fetch
 
 		// fetch a document from the cursor
-		if meta, err = cursor.ReadDocument(ctx, deppkg); err != nil {
+		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil {
 			logger.Sugar().Errorf("Failed to read document: %v", err)
 		}
-		deppkgs.Packages = append(deppkgs.Packages, deppkg)                  // add the Dependency to the list
+		packages.Packages = append(packages.Packages, pkg)                   // add the Dependency to the list
 		logger.Sugar().Infof("Got doc with key '%s' from query\n", meta.Key) // log the key
 	}
 
-	return c.JSON(deppkgs) // return the list of dependencies in JSON format
+	return c.JSON(packages) // return the list of dependencies in JSON format
 }
 
-// GetDepkkg godoc
-// @Summary Get a DepPkg
-// @Description Get a deppkg based on the _key or name.
-// @Tags deppkg
+// GetPackage godoc
+// @Summary Get a Package
+// @Description Get a package based on the _key or name.
+// @Tags package
 // @Accept */*
 // @Produce json
 // @Success 200
-// @Router /msapi/deppkg/:key [get]
-func GetDepPkg(c *fiber.Ctx) error {
+// @Router /msapi/package/:key [get]
+func GetPackage(c *fiber.Ctx) error {
 
 	var cursor driver.Cursor       // db cursor for rows
 	var err error                  // for error handling
@@ -81,10 +81,10 @@ func GetDepPkg(c *fiber.Ctx) error {
 		"key": key,
 	}
 
-	// query the deppkgs that match the key or name
-	aql := `FOR deppkg in evidence
-			FILTER (deppkg.name == @key or deppkg._key == @key)
-			RETURN deppkg`
+	// query the packages that match the key or name
+	aql := `FOR package in evidence
+			FILTER (package.name == @key or package._key == @key)
+			RETURN package`
 
 	// run the query with patameters
 	if cursor, err = dbconn.Database.Query(ctx, aql, parameters); err != nil {
@@ -93,78 +93,78 @@ func GetDepPkg(c *fiber.Ctx) error {
 
 	defer cursor.Close() // close the cursor when returning from this function
 
-	deppkg := model.NewPackage() // define a dependency package to be returned
+	pkg := model.NewPackage() // define a dependency package to be returned
 
-	if cursor.HasMore() { // deppkg found
+	if cursor.HasMore() { // package found
 		var meta driver.DocumentMeta // data about the fetch
 
-		if meta, err = cursor.ReadDocument(ctx, deppkg); err != nil { // fetch the document into the object
+		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil { // fetch the document into the object
 			logger.Sugar().Errorf("Failed to read document: %v", err)
 		}
 		logger.Sugar().Infof("Got doc with key '%s' from query\n", meta.Key)
 
 	} else { // not found so get from NFT Storage
 		if jsonStr, exists := database.MakeJSON(key); exists {
-			if err := json.Unmarshal([]byte(jsonStr), deppkg); err != nil { // convert the JSON string from LTF into the object
+			if err := json.Unmarshal([]byte(jsonStr), pkg); err != nil { // convert the JSON string from LTF into the object
 				logger.Sugar().Errorf("Failed to unmarshal from LTS: %v", err)
 			}
 		}
 	}
 
-	return c.JSON(deppkg) // return the deppkg in JSON format
+	return c.JSON(pkg) // return the package in JSON format
 }
 
-// NewDepPkg godoc
-// @Summary Create a DepPkg
-// @Description Create a new DepPkg and persist it
-// @Tags deppkg
+// NewPackage godoc
+// @Summary Create a Package
+// @Description Create a new Package and persist it
+// @Tags package
 // @Accept application/json
 // @Produce json
 // @Success 200
-// @Router /msapi/deppkg [post]
-func NewDepPkg(c *fiber.Ctx) error {
+// @Router /msapi/package [post]
+func NewPackage(c *fiber.Ctx) error {
 
 	var err error                  // for error handling
 	var meta driver.DocumentMeta   // data about the document
 	var ctx = context.Background() // use default database context
-	deppkg := model.NewPackage()   // define a deppkg to be returned
+	pkg := model.NewPackage()      // define a package to be returned
 
-	if err = c.BodyParser(deppkg); err != nil { // parse the JSON into the deppkg object
+	if err = c.BodyParser(pkg); err != nil { // parse the JSON into the package object
 		return c.Status(503).Send([]byte(err.Error()))
 	}
 
-	cid, dbStr := database.MakeNFT(deppkg) // normalize the object into NFTs and JSON string for db persistence
+	cid, dbStr := database.MakeNFT(pkg) // normalize the object into NFTs and JSON string for db persistence
 
 	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 
-	// add the deppkg to the database.  Ignore if it already exists since it will be identical
-	if meta, err = dbconn.Collection.CreateDocument(ctx, deppkg); err != nil && !driver.IsConflict(err) {
+	// add the package to the database.  Ignore if it already exists since it will be identical
+	if meta, err = dbconn.Collection.CreateDocument(ctx, pkg); err != nil && !driver.IsConflict(err) {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
 	}
 	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), meta.Key)
 
-	return c.JSON(deppkg) // return the deppkg object in JSON format.  This includes the new _key
+	return c.JSON(pkg) // return the package object in JSON format.  This includes the new _key
 }
 
 // setupRoutes defines maps the routes to the functions
 func setupRoutes(app *fiber.App) {
 
 	app.Get("/swagger/*", swagger.HandlerDefault) // handle displaying the swagger
-	app.Get("/msapi/deppkg", GetDepPkgs)          // list of deppkgs
-	app.Get("/msapi/deppkg/:key", GetDepPkg)      // single deppkg based on name or key
-	app.Post("/msapi/deppkg", NewDepPkg)          // save a single deppkg
+	app.Get("/msapi/package", GetPackages)        // list of packages
+	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
+	app.Post("/msapi/package", NewPackage)        // save a single package
 }
 
-// @title Ortelius v11 DepPkg Microservice
+// @title Ortelius v11 Package Microservice
 // @version 11.0.0
-// @description RestAPI for the deppkg Object
-// @description ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)
-// @description ![license](https://img.shields.io/github/license/ortelius/scec-deppkg)
+// @description RestAPI for the package Object
+// @description ![Release](https://img.shields.io/github/v/release/ortelius/scec-package?sort=semver)
+// @description ![license](https://img.shields.io/github/license/ortelius/scec-package)
 // @description
-// @description ![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)
-// @description [![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)
-// @description ![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)
-// @description [![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)
+// @description ![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-package/build-push-chart.yml)
+// @description [![MegaLinter](https://github.com/ortelius/scec-package/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-package/actions?query=workflow%3AMegaLinter+branch%3Amain)
+// @description ![CodeQL](https://github.com/ortelius/scec-package/workflows/CodeQL/badge.svg)
+// @description [![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-package/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-package)
 // @description
 // @description ![Discord](https://img.shields.io/discord/722468819091849316)
 
@@ -174,7 +174,7 @@ func setupRoutes(app *fiber.App) {
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @host localhost:3000
-// @BasePath /msapi/deppkg
+// @BasePath /msapi/package
 func main() {
 	port := ":" + database.GetEnvDefault("MS_PORT", "8080") // database port
 	app := fiber.New()                                      // create a new fiber application

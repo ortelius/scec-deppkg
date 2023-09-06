@@ -36,8 +36,8 @@ Get a list of DepPkgs.
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |
 
 #### POST
 ##### Summary
@@ -51,8 +51,8 @@ Create a new DepPkg and persist it
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |
 
 ---
 ### /msapi/deppkg
@@ -69,8 +69,8 @@ Get a list of DepPkgs.
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |
 
 #### POST
 ##### Summary
@@ -84,8 +84,8 @@ Create a new DepPkg and persist it
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |
 
 ### /msapi/deppkg/:key
 
@@ -101,5 +101,5 @@ Get a deppkg based on the _key or name.
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |

@@ -178,7 +178,7 @@ func setupRoutes(app *fiber.App) {
 // @host localhost:3000
 // @BasePath /msapi/package
 func main() {
-	port := ":" + database.GetEnvDefault("MS_PORT", "8080") // database port
+	port := ":" + database.GetEnvDefault("MS_PORT", "8081") // database port
 	app := fiber.New()                                      // create a new fiber application
 	app.Use(cors.New(cors.Config{
 		AllowHeaders: "Origin, Content-Type, Accept",

@@ -114,36 +114,38 @@ func GetPackage(c *fiber.Ctx) error {
 	return c.JSON(pkg) // return the package in JSON format
 }
 
-// NewPackage godoc
-// @Summary Create a Package
-// @Description Create a new Package and persist it
-// @Tags package
+// NewSBOM godoc
+// @Summary Upload an SBOM
+// @Description Create a new SBOM and persist it
+// @Tags sbom
 // @Accept application/json
 // @Produce json
 // @Success 200
-// @Router /msapi/package [post]
-func NewPackage(c *fiber.Ctx) error {
+// @Router /msapi/sbom [post]
+func NewSBOM(c *fiber.Ctx) error {
 
 	var err error                  // for error handling
 	var meta driver.DocumentMeta   // data about the document
 	var ctx = context.Background() // use default database context
-	pkg := model.NewPackage()      // define a package to be returned
+	sbom := model.NewSBOM()        // define a package to be returned
 
-	if err = c.BodyParser(pkg); err != nil { // parse the JSON into the package object
+	if err = c.BodyParser(sbom); err != nil { // parse the JSON into the package object
 		return c.Status(503).Send([]byte(err.Error()))
 	}
 
-	cid, dbStr := database.MakeNFT(pkg) // normalize the object into NFTs and JSON string for db persistence
+	cid, dbStr := database.MakeNFT(sbom) // normalize the object into NFTs and JSON string for db persistence
 
 	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 
 	// add the package to the database.  Ignore if it already exists since it will be identical
-	if meta, err = dbconn.Collection.CreateDocument(ctx, pkg); err != nil && !driver.IsConflict(err) {
+	if meta, err = dbconn.Collection.CreateDocument(ctx, sbom); err != nil && !driver.IsConflict(err) {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
 	}
 	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), meta.Key)
 
-	return c.JSON(pkg) // return the package object in JSON format.  This includes the new _key
+	var res model.ResponseKey
+	res.Key = sbom.Key
+	return c.JSON(res) // return the package object in JSON format.  This includes the new _key
 }
 
 // setupRoutes defines maps the routes to the functions
@@ -152,7 +154,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/swagger/*", swagger.HandlerDefault) // handle displaying the swagger
 	app.Get("/msapi/package", GetPackages)        // list of packages
 	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
-	app.Post("/msapi/package", NewPackage)        // save a single package
+	app.Post("/msapi/sbom", NewSBOM)              // save a single package
 }
 
 // @title Ortelius v11 Package Microservice

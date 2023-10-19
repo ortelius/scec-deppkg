@@ -33,9 +33,9 @@ func GetPackages(c *fiber.Ctx) error {
 	var ctx = context.Background() // use default database context
 
 	// query all the package in the collection
-	aql := `FOR package in evidence
-			FILTER (package.objtype == 'package')
-			RETURN package`
+	aql := `FOR sbom in sbom
+			FILTER (sbom.objtype == 'SBOM')
+			RETURN sbom`
 
 	// execute the query with no parameters
 	if cursor, err = dbconn.Database.Query(ctx, aql, nil); err != nil {
@@ -82,9 +82,9 @@ func GetPackage(c *fiber.Ctx) error {
 	}
 
 	// query the packages that match the key or name
-	aql := `FOR package in evidence
-			FILTER (package.name == @key or package._key == @key)
-			RETURN package`
+	aql := `FOR sbom in sbom
+			FILTER sbom._key == @key
+			RETURN sbom`
 
 	// run the query with patameters
 	if cursor, err = dbconn.Database.Query(ctx, aql, parameters); err != nil {

@@ -44,7 +44,7 @@ func GetPackages(c *fiber.Ctx) error {
 
 	defer cursor.Close() // close the cursor when returning from this function
 
-	packages := model.NewPackages() // define a list of packages to be returned
+	var packages []*model.Package // define a list of packages to be returned
 
 	for cursor.HasMore() { // loop thru all of the documents
 
@@ -55,7 +55,7 @@ func GetPackages(c *fiber.Ctx) error {
 		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil {
 			logger.Sugar().Errorf("Failed to read document: %v", err)
 		}
-		packages.Packages = append(packages.Packages, pkg)                   // add the Dependency to the list
+		packages = append(packages, pkg)                                     // add the Dependency to the list
 		logger.Sugar().Infof("Got doc with key '%s' from query\n", meta.Key) // log the key
 	}
 

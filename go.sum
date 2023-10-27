@@ -88,6 +88,8 @@ github.com/multiformats/go-varint v0.0.7/go.mod h1:r8PUYw/fD/SjBCiKOoDlGF6QawOEL
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/ortelius/scec-commons v0.1.19 h1:TsDoQg3ZKV+RaioNbSEQCnVg+UYqHBM/FPfJXTWXnjM=
 github.com/ortelius/scec-commons v0.1.19/go.mod h1:VciTIdoAugf76sZAlyoXtKEYVTrYjsTcjeUq7tl4//E=
+github.com/ortelius/scec-commons v0.1.20 h1:O1rF7nvYZTZ6S97mM6frZTafT+P8ozCPp/oy85Y1ZiY=
+github.com/ortelius/scec-commons v0.1.20/go.mod h1:VciTIdoAugf76sZAlyoXtKEYVTrYjsTcjeUq7tl4//E=
 github.com/philhofer/fwd v1.1.2/go.mod h1:qkPdfjR2SIEbspLqpe1tO4n5yICnr2DY7mqEx2tUTP0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

@@ -36,8 +36,8 @@ Get a list of Packages.
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |
 
 ---
 ### /msapi/package/:key
@@ -54,8 +54,8 @@ Get a package based on the _key or name.
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |
 
 ---
 ### /msapi/sbom
@@ -72,5 +72,5 @@ Create a new SBOM and persist it
 ##### Responses
 
 | Code | Description |
-| ---- | ----------- |
-| 200 | OK |
+|------|-------------|
+| 200  | OK          |

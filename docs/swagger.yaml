@@ -1,11 +1,11 @@
-basePath: /msapi/deppkg
+basePath: /msapi/package
 host: localhost:3000
 info:
   contact:
     email: ortelius-dev@googlegroups.com
     name: Ortelius Google Group
   description: |-
-    RestAPI for the deppkg Object
+    RestAPI for the package Object
     ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)
     ![license](https://img.shields.io/github/license/ortelius/scec-deppkg)
 
@@ -19,59 +19,46 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Ortelius v11 DepPkg Microservice
+  title: Ortelius v11 Package Microservice
   version: 11.0.0
 paths:
-  /msapi/deppkg:
-    get:
-      consumes:
-        - "*/*"
-      description: Get a list of DepPkgs.
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Get a List of DepPkgs
-      tags:
-        - DepPkgs
-    post:
-      consumes:
-        - application/json
-        - DepPkgs
-    post:
-      consumes:
-        - application/json
-      description: Create a new DepPkg and persist it
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Create a DepPkg
-      tags:
-        - deppkg
-  /msapi/deppkg/:key:
-    get:
-      consumes:
-        - "*/*"
-      - deppkg
-  /msapi/deppkg/:key:
+  /msapi/package:
     get:
       consumes:
       - '*/*'
-        - deppkg
-  /msapi/deppkg/:key:
-    get:
-      consumes:
-        - "*/*"
-      description: Get a deppkg based on the _key or name.
+      description: Get a list of Packages.
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
-      summary: Get a DepPkg
+      summary: Get a List of Packages
       tags:
-        - deppkg
+      - Packages
+  /msapi/package/:key:
+    get:
+      consumes:
+      - '*/*'
+      description: Get a package based on the _key or name.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get a Package
+      tags:
+      - package
+  /msapi/sbom:
+    post:
+      consumes:
+      - application/json
+      description: Create a new SBOM and persist it
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Upload an SBOM
+      tags:
+      - sbom
 swagger: "2.0"

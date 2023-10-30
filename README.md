@@ -1,5 +1,5 @@
-# Ortelius v11 DepPkg Microservice
-RestAPI for the deppkg Object
+# Ortelius v11 Package Microservice
+RestAPI for the package Object
 ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)
 ![license](https://img.shields.io/github/license/ortelius/scec-deppkg)
 
@@ -22,81 +22,34 @@ ortelius-dev@googlegroups.com
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 ---
-### /msapi/deppkg
+### /msapi/package
 
 #### GET
 ##### Summary
 
-Get a List of DepPkgs
+Get a List of Packages
 
 ##### Description
 
-Get a list of DepPkgs.
+Get a list of Packages.
 
 ##### Responses
 
 | Code | Description |
-|------|-------------|
-| 200  | OK          |
-
-#### POST
-##### Summary
-
-Create a DepPkg
-
-##### Description
-
-Create a new DepPkg and persist it
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
+| ---- | ----------- |
+| 200 | OK |
 
 ---
-### /msapi/deppkg
+### /msapi/package/:key
 
 #### GET
 ##### Summary
 
-Get a List of DepPkgs
+Get a Package
 
 ##### Description
 
-Get a list of DepPkgs.
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
-
-#### POST
-##### Summary
-
-Create a DepPkg
-
-##### Description
-
-Create a new DepPkg and persist it
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
-
-### /msapi/deppkg/:key
-
-#### GET
-##### Summary
-
-Get a DepPkg
-
-##### Description
-
-Get a deppkg based on the _key or name.
+Get a package based on the _key or name.
 
 ##### Responses
 
@@ -104,101 +57,20 @@ Get a deppkg based on the _key or name.
 | ---- | ----------- |
 | 200 | OK |
 
-#### POST
-##### Summary
-
-Create a DepPkg
-
-##### Description
-
-Create a new DepPkg and persist it
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
-
-### /msapi/deppkg/:key
-
-#### GET
-##### Summary
-
-Get a DepPkg
-
-##### Description
-
-Get a deppkg based on the _key or name.
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
+---
+### /msapi/sbom
 
 #### POST
 ##### Summary
 
-Create a DepPkg
+Upload an SBOM
 
 ##### Description
 
-Create a new DepPkg and persist it
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
-
-### /msapi/deppkg/:key
-
-#### GET
-##### Summary
-
-Get a DepPkg
-
-##### Description
-
-Get a deppkg based on the _key or name.
-=======
+Create a new SBOM and persist it
 
 ##### Responses
 
 | Code | Description |
 | ---- | ----------- |
 | 200 | OK |
-=======
->>>>>>> 6242be0 (update for object type)
-
-#### POST
-##### Summary
-
-Create a DepPkg
-
-##### Description
-
-Create a new DepPkg and persist it
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
-
-### /msapi/deppkg/:key
-
-#### GET
-##### Summary
-
-Get a DepPkg
-
-##### Description
-
-Get a deppkg based on the _key or name.
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |

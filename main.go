@@ -160,13 +160,13 @@ func setupRoutes(app *fiber.App) {
 // @title Ortelius v11 Package Microservice
 // @version 11.0.0
 // @description RestAPI for the package Object
-// @description ![Release](https://img.shields.io/github/v/release/ortelius/scec-package?sort=semver)
-// @description ![license](https://img.shields.io/github/license/ortelius/scec-package)
+// @description ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)
+// @description ![license](https://img.shields.io/github/license/ortelius/scec-deppkg)
 // @description
-// @description ![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-package/build-push-chart.yml)
-// @description [![MegaLinter](https://github.com/ortelius/scec-package/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-package/actions?query=workflow%3AMegaLinter+branch%3Amain)
-// @description ![CodeQL](https://github.com/ortelius/scec-package/workflows/CodeQL/badge.svg)
-// @description [![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-package/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-package)
+// @description ![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)
+// @description [![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)
+// @description ![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)
+// @description [![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)
 // @description
 // @description ![Discord](https://img.shields.io/discord/722468819091849316)
 

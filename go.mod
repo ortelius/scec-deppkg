@@ -3,18 +3,22 @@ module cli
 go 1.20
 
 require (
-	github.com/arangodb/go-driver v1.6.0
+	github.com/arangodb/go-driver/v2 v2.0.3
 	github.com/gofiber/fiber/v2 v2.50.0
-	github.com/ortelius/scec-commons v0.1.21
+	github.com/ortelius/scec-commons v0.1.25
 	github.com/swaggo/swag v1.16.2
 )
 
 require (
+	github.com/dchest/siphash v1.2.3 // indirect
+	github.com/kkdai/maglev v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/rs/zerolog v1.31.0 // indirect
 	github.com/sanity-io/litter v1.5.5 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 )
 

@@ -7,7 +7,7 @@ import (
 
 	_ "cli/docs"
 
-	"github.com/arangodb/go-driver/v2/arangodb"
+	driver "github.com/arangodb/go-driver/v2/arangodb"
 	"github.com/arangodb/go-driver/v2/arangodb/shared"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -29,7 +29,7 @@ var dbconn = database.InitializeDB("sbom")
 // @Router /msapi/package [get]
 func GetPackages(c *fiber.Ctx) error {
 
-	var cursor arangodb.Cursor     // db cursor for rows
+	var cursor driver.Cursor       // db cursor for rows
 	var err error                  // for error handling
 	var ctx = context.Background() // use default database context
 
@@ -49,8 +49,8 @@ func GetPackages(c *fiber.Ctx) error {
 
 	for cursor.HasMore() { // loop thru all of the documents
 
-		pkg := model.NewPackage()      // fetched dependency package
-		var meta arangodb.DocumentMeta // data about the fetch
+		pkg := model.NewPackage()    // fetched dependency package
+		var meta driver.DocumentMeta // data about the fetch
 
 		// fetch a document from the cursor
 		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil {
@@ -73,7 +73,7 @@ func GetPackages(c *fiber.Ctx) error {
 // @Router /msapi/package/:key [get]
 func GetPackage(c *fiber.Ctx) error {
 
-	var cursor arangodb.Cursor     // db cursor for rows
+	var cursor driver.Cursor       // db cursor for rows
 	var err error                  // for error handling
 	var ctx = context.Background() // use default database context
 
@@ -88,7 +88,7 @@ func GetPackage(c *fiber.Ctx) error {
 			RETURN sbom`
 
 	// run the query with patameters
-	if cursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
+	if cursor, err = dbconn.Database.Query(ctx, aql, &driver.QueryOptions{BindVars: parameters}); err != nil {
 		logger.Sugar().Errorf("Failed to run query: %v", err)
 	}
 
@@ -97,7 +97,7 @@ func GetPackage(c *fiber.Ctx) error {
 	pkg := model.NewPackage() // define a dependency package to be returned
 
 	if cursor.HasMore() { // package found
-		var meta arangodb.DocumentMeta // data about the fetch
+		var meta driver.DocumentMeta // data about the fetch
 
 		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil { // fetch the document into the object
 			logger.Sugar().Errorf("Failed to read document: %v", err)
@@ -126,7 +126,7 @@ func GetPackage(c *fiber.Ctx) error {
 func NewSBOM(c *fiber.Ctx) error {
 
 	var err error                  // for error handling
-	var meta arangodb.DocumentMeta // data about the document
+	var meta driver.DocumentMeta   // data about the document
 	var ctx = context.Background() // use default database context
 	sbom := model.NewSBOM()        // define a package to be returned
 
@@ -139,7 +139,7 @@ func NewSBOM(c *fiber.Ctx) error {
 	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 
 	// add the package to the database.  Ignore if it already exists since it will be identical
-	var resp arangodb.CollectionDocumentCreateResponse
+	var resp driver.CollectionDocumentCreateResponse
 
 	if resp, err = dbconn.Collection.CreateDocument(ctx, sbom); err != nil && !shared.IsConflict(err) {
 		logger.Sugar().Errorf("Failed to create document: %v", err)

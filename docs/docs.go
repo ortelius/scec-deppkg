@@ -24,9 +24,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/msapi/domain": {
+        "/msapi/package": {
             "get": {
-                "description": "Get a list of domains for the user.",
+                "description": "Get a list of Packages.",
                 "consumes": [
                     "*/*"
                 ],
@@ -34,27 +34,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "domain"
+                    "Packages"
                 ],
-                "summary": "Get a List of Domains",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new Domain and persist it",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "domain"
-                ],
-                "summary": "Create a Domain",
+                "summary": "Get a List of Packages",
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -62,9 +44,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/msapi/domain/:key": {
+        "/msapi/package/:key": {
             "get": {
-                "description": "Get a domain based on the _key or name.",
+                "description": "Get a package based on the _key or name.",
                 "consumes": [
                     "*/*"
                 ],
@@ -72,9 +54,29 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "domain"
+                    "package"
                 ],
-                "summary": "Get a Domain",
+                "summary": "Get a Package",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/msapi/sbom": {
+            "post": {
+                "description": "Create a new SBOM and persist it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sbom"
+                ],
+                "summary": "Upload an SBOM",
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -89,10 +91,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "11.0.0",
 	Host:             "localhost:3000",
-	BasePath:         "/msapi/domain",
+	BasePath:         "/msapi/package",
 	Schemes:          []string{},
-	Title:            "Ortelius v11 Domain Microservice",
-	Description:      "RestAPI for the Domain Object",
+	Title:            "Ortelius v11 Package Microservice",
+	Description:      "RestAPI for the package Object\n![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)\n![license](https://img.shields.io/github/license/ortelius/scec-deppkg)\n\n![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)\n[![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)\n![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)\n[![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)\n\n![Discord](https://img.shields.io/discord/722468819091849316)",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

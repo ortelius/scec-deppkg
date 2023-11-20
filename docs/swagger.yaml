@@ -1,53 +1,64 @@
-basePath: /msapi/domain
+basePath: /msapi/package
 host: localhost:3000
 info:
   contact:
     email: ortelius-dev@googlegroups.com
     name: Ortelius Google Group
-  description: RestAPI for the Domain Object
+  description: |-
+    RestAPI for the package Object
+    ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)
+    ![license](https://img.shields.io/github/license/ortelius/scec-deppkg)
+
+    ![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)
+    [![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)
+    ![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)
+    [![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)
+
+    ![Discord](https://img.shields.io/discord/722468819091849316)
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Ortelius v11 Domain Microservice
+  title: Ortelius v11 Package Microservice
   version: 11.0.0
 paths:
-  /msapi/domain:
+  /msapi/package:
     get:
       consumes:
         - "*/*"
-      description: Get a list of domains for the user.
+      description: Get a list of Packages.
       produces:
         - application/json
       responses:
         "200":
           description: OK
-      summary: Get a List of Domains
+      summary: Get a List of Packages
       tags:
-        - domain
+        - Packages
+  /msapi/package/:key:
+    get:
+      consumes:
+        - "*/*"
+      description: Get a package based on the _key or name.
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get a Package
+      tags:
+        - package
+  /msapi/sbom:
     post:
       consumes:
         - application/json
-      description: Create a new Domain and persist it
+      description: Create a new SBOM and persist it
       produces:
         - application/json
       responses:
         "200":
           description: OK
-      summary: Create a Domain
+      summary: Upload an SBOM
       tags:
-        - domain
-  /msapi/domain/:key:
-    get:
-      consumes:
-        - "*/*"
-      description: Get a domain based on the _key or name.
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Get a Domain
-      tags:
-        - domain
+        - sbom
 swagger: "2.0"

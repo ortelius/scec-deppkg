@@ -17,7 +17,7 @@ permissions: read-all
 
 jobs:
   setenv:
-    uses: ortelius/workflow-toolkit/.github/workflows/env-config-workflow.yml@de0cad52142a0af51ae161061e6e9b91766a2ff6
+    uses: ortelius/workflow-toolkit/.github/workflows/env-config-workflow.yml@0449c429f0a8a1a4a90b3bfc6f6ea2720ea6bd9b
     with:
       gh_head_ref: ${{ github.head_ref }}
       gh_ref_name: ${{ github.ref_name }}
@@ -29,7 +29,7 @@ jobs:
   release:
     permissions:
       id-token: write
-    uses: ortelius/workflow-toolkit/.github/workflows/container-release-workflow.yml@de0cad52142a0af51ae161061e6e9b91766a2ff6
+    uses: ortelius/workflow-toolkit/.github/workflows/container-release-workflow.yml@0449c429f0a8a1a4a90b3bfc6f6ea2720ea6bd9b
     needs: setenv
     with:
       gh_repository_owner: ${{ github.repository_owner }}
@@ -40,15 +40,12 @@ jobs:
     secrets:
       QUAY_USERID: ${{ secrets.QUAY_USERID }}
       QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-      COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
   trivy:
     permissions:
       security-events: write
       statuses: write
-    uses: ortelius/workflow-toolkit/.github/workflows/trivy-scan-workflow.yml@de0cad52142a0af51ae161061e6e9b91766a2ff6
+    uses: ortelius/workflow-toolkit/.github/workflows/trivy-scan-workflow.yml@0449c429f0a8a1a4a90b3bfc6f6ea2720ea6bd9b
     needs: [setenv, release]
     with:
       gh_repository_owner: ${{ github.repository_owner }}
@@ -59,7 +56,7 @@ jobs:
   helm:
     permissions:
       contents: write
-    uses: ortelius/workflow-toolkit/.github/workflows/helm-release-workflow.yml@de0cad52142a0af51ae161061e6e9b91766a2ff6
+    uses: ortelius/workflow-toolkit/.github/workflows/helm-release-workflow.yml@0449c429f0a8a1a4a90b3bfc6f6ea2720ea6bd9b
     needs: [setenv, release]
     with:
       gh_repository_owner: ${{ github.repository_owner }}
@@ -78,7 +75,7 @@ jobs:
       gh_token: ${{ secrets.HELM_INDEXER_TOKEN }}
 
   sbom:
-    uses: ortelius/workflow-toolkit/.github/workflows/sbom-generation-workflow.yml@de0cad52142a0af51ae161061e6e9b91766a2ff6
+    uses: ortelius/workflow-toolkit/.github/workflows/sbom-generation-workflow.yml@0449c429f0a8a1a4a90b3bfc6f6ea2720ea6bd9b
     needs: [setenv, release]
     with:
       gh_repository_owner: ${{ github.repository_owner }}

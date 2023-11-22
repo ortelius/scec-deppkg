@@ -29,7 +29,7 @@ jobs:
   release:
     permissions:
       id-token: write
-    uses: ortelius/workflow-toolkit/.github/workflows/container-release-workflow.yml@0449c429f0a8a1a4a90b3bfc6f6ea2720ea6bd9b
+    uses: ortelius/workflow-toolkit/.github/workflows/container-release-workflow.yml@de0cad52142a0af51ae161061e6e9b91766a2ff6
     needs: setenv
     with:
       gh_repository_owner: ${{ github.repository_owner }}
@@ -40,6 +40,9 @@ jobs:
     secrets:
       QUAY_USERID: ${{ secrets.QUAY_USERID }}
       QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
   trivy:
     permissions:

@@ -152,6 +152,43 @@ func NewSBOM(c *fiber.Ctx) error {
 	return c.JSON(res) // return the package object in JSON format.  This includes the new _key
 }
 
+// NewProvenance godoc
+// @Summary Upload Provenance JSON
+// @Description Create a new Provenance and persist it
+// @Tags provenance
+// @Accept application/json
+// @Produce json
+// @Success 200
+// @Router /msapi/provenance [post]
+func NewProvenance(c *fiber.Ctx) error {
+
+	var err error                       // for error handling
+	var meta driver.DocumentMeta        // data about the document
+	var ctx = context.Background()      // use default database context
+	provenance := model.NewProvenance() // define a package to be returned
+
+	if err = c.BodyParser(provenance); err != nil { // parse the JSON into the package object
+		return c.Status(503).Send([]byte(err.Error()))
+	}
+
+	cid, dbStr := database.MakeNFT(provenance) // normalize the object into NFTs and JSON string for db persistence
+
+	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
+
+	// add the package to the database.  Ignore if it already exists since it will be identical
+	var resp driver.CollectionDocumentCreateResponse
+
+	if resp, err = dbconn.Collection.CreateDocument(ctx, provenance); err != nil && !shared.IsConflict(err) {
+		logger.Sugar().Errorf("Failed to create document: %v", err)
+	}
+	meta = resp.DocumentMeta
+	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), meta.Key)
+
+	var res model.ResponseKey
+	res.Key = provenance.Key
+	return c.JSON(res) // return the package object in JSON format.  This includes the new _key
+}
+
 // setupRoutes defines maps the routes to the functions
 func setupRoutes(app *fiber.App) {
 
@@ -159,6 +196,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/msapi/package", GetPackages)        // list of packages
 	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
 	app.Post("/msapi/sbom", NewSBOM)              // save a single package
+	app.Post("/msapi/provenance", NewProvenance)  // save a single package
 }
 
 // @title Ortelius v11 Package Microservice

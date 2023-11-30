@@ -189,6 +189,11 @@ func NewProvenance(c *fiber.Ctx) error {
 	return c.JSON(res) // return the package object in JSON format.  This includes the new _key
 }
 
+// HealthCheck for kubernetes to determine if it is in a good state
+func HealthCheck(c *fiber.Ctx) error {
+	return c.SendString("OK")
+}
+
 // setupRoutes defines maps the routes to the functions
 func setupRoutes(app *fiber.App) {
 
@@ -197,6 +202,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
 	app.Post("/msapi/sbom", NewSBOM)              // save a single package
 	app.Post("/msapi/provenance", NewProvenance)  // save a single package
+	app.Get("/health", HealthCheck)              // kubernetes health check
 }
 
 // @title Ortelius v11 Package Microservice

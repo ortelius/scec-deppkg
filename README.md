@@ -17,7 +17,7 @@ RestAPI for the package Object
 
 **Contact information:**
 Ortelius Google Group
-ortelius-dev@googlegroups.com
+<ortelius-dev@googlegroups.com>
 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
 

@@ -202,7 +202,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
 	app.Post("/msapi/sbom", NewSBOM)              // save a single package
 	app.Post("/msapi/provenance", NewProvenance)  // save a single package
-	app.Get("/health", HealthCheck)              // kubernetes health check
+	app.Get("/health", HealthCheck)               // kubernetes health check
 }
 
 // @title Ortelius v11 Package Microservice

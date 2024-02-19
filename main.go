@@ -10,6 +10,7 @@ import (
 	driver "github.com/arangodb/go-driver/v2/arangodb"
 	"github.com/arangodb/go-driver/v2/arangodb/shared"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/swagger"
 	"github.com/ortelius/scec-commons/database"
@@ -227,7 +228,9 @@ func setupRoutes(app *fiber.App) {
 // @BasePath /msapi/package
 func main() {
 	port := ":" + database.GetEnvDefault("MS_PORT", "8081") // database port
-	app := fiber.New()                                      // create a new fiber application
+	app := fiber.New()
+	app.Use(compress.New())
+	// create a new fiber application
 	app.Use(cors.New(cors.Config{
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowOrigins: "*",

@@ -190,6 +190,13 @@ func NewProvenance(c *fiber.Ctx) error {
 	return c.JSON(res) // return the package object in JSON format.  This includes the new _key
 }
 
+// SBOMType returns full_file to signify that a complete SBOM is supported
+func SBOMType(c *fiber.Ctx) error {
+	// Return a JSON response with SBOMType: 'full_file'
+	response := fiber.Map{"SBOMType": "fullfile"}
+	return c.JSON(response)
+}
+
 // HealthCheck for kubernetes to determine if it is in a good state
 func HealthCheck(c *fiber.Ctx) error {
 	return c.SendString("OK")
@@ -201,6 +208,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/swagger/*", swagger.HandlerDefault) // handle displaying the swagger
 	app.Get("/msapi/package", GetPackages)        // list of packages
 	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
+	app.Get("/msapi/deppkg", SBOMType)            // tell client that this microservice supports a full SBOM on the SBOM Post
 	app.Post("/msapi/sbom", NewSBOM)              // save a single package
 	app.Post("/msapi/provenance", NewProvenance)  // save a single package
 	app.Get("/health", HealthCheck)               // kubernetes health check

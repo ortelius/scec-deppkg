@@ -3,12 +3,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"net/http"
+	"sort"
+	"strings"
 
 	_ "cli/docs"
+	"cli/models"
 
-	driver "github.com/arangodb/go-driver/v2/arangodb"
+	"github.com/arangodb/go-driver/v2/arangodb"
 	"github.com/arangodb/go-driver/v2/arangodb/shared"
+	"github.com/goark/go-cvss/v2/metric"
+	metric_v3 "github.com/goark/go-cvss/v3/metric"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -30,7 +35,7 @@ var dbconn = database.InitializeDB("sbom")
 // @Router /msapi/package [get]
 func GetPackages(c *fiber.Ctx) error {
 
-	var cursor driver.Cursor       // db cursor for rows
+	var cursor arangodb.Cursor     // db cursor for rows
 	var err error                  // for error handling
 	var ctx = context.Background() // use default database context
 
@@ -50,21 +55,21 @@ func GetPackages(c *fiber.Ctx) error {
 
 	for cursor.HasMore() { // loop thru all of the documents
 
-		pkg := model.NewPackage()    // fetched dependency package
-		var meta driver.DocumentMeta // data about the fetch
+		pkg := model.NewPackage()      // fetched dependency package
+		var meta arangodb.DocumentMeta // data about the fetch
 
 		// fetch a document from the cursor
 		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil {
 			logger.Sugar().Errorf("Failed to read document: %v", err)
 		}
-		packages = append(packages, pkg)                                     // add the Dependency to the list
-		logger.Sugar().Infof("Got doc with key '%s' from query\n", meta.Key) // log the key
+		packages = append(packages, pkg)                                   // add the Dependency to the list
+		logger.Sugar().Infof("Got doc with key '%s' from query", meta.Key) // log the key
 	}
 
 	return c.JSON(packages) // return the list of dependencies in JSON format
 }
 
-// GetPackage godoc
+// GetPackages4SBOM godoc
 // @Summary Get a Package
 // @Description Get a package based on the _key or name.
 // @Tags package
@@ -72,48 +77,263 @@ func GetPackages(c *fiber.Ctx) error {
 // @Produce json
 // @Success 200
 // @Router /msapi/package/:key [get]
-func GetPackage(c *fiber.Ctx) error {
+func GetPackages4SBOM(c *fiber.Ctx) error {
 
-	var cursor driver.Cursor       // db cursor for rows
-	var err error                  // for error handling
-	var ctx = context.Background() // use default database context
+	compid := c.Query("compid")
+	keys := strings.Split(c.Query("appid"), ",")
+	deptype := c.Query("deptype")
 
-	key := c.Params("key")                // key from URL
-	parameters := map[string]interface{}{ // parameters
-		"key": key,
+	if compid != "" {
+		keys = append(keys, compid)
 	}
 
-	// query the packages that match the key or name
-	aql := `FOR sbom in sbom
-			FILTER sbom._key == @key
-			RETURN sbom`
-
-	// run the query with patameters
-	if cursor, err = dbconn.Database.Query(ctx, aql, &driver.QueryOptions{BindVars: parameters}); err != nil {
-		logger.Sugar().Errorf("Failed to run query: %v", err)
-	}
-
-	defer cursor.Close() // close the cursor when returning from this function
-
-	pkg := model.NewPackage() // define a dependency package to be returned
-
-	if cursor.HasMore() { // package found
-		var meta driver.DocumentMeta // data about the fetch
-
-		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil { // fetch the document into the object
-			logger.Sugar().Errorf("Failed to read document: %v", err)
+	if deptype == "license" {
+		data := map[string]interface{}{
+			"data": GetLicenses(keys),
 		}
-		logger.Sugar().Infof("Got doc with key '%s' from query\n", meta.Key)
+		return c.JSON(data)
+	}
 
-	} else { // not found so get from NFT Storage
-		if jsonStr, exists := database.MakeJSON(key); exists {
-			if err := json.Unmarshal([]byte(jsonStr), pkg); err != nil { // convert the JSON string from LTF into the object
-				logger.Sugar().Errorf("Failed to unmarshal from LTS: %v", err)
+	data := map[string]interface{}{
+		"data": GetCVEs(keys),
+	}
+	return c.JSON(data)
+}
+
+// GetLicenses will return a list of packages and corresponding licenses
+func GetLicenses(keys []string) []*model.PackageLicense {
+	var cursor arangodb.Cursor            // db cursor for rows
+	var err error                         // for error handling
+	var ctx = context.Background()        // use default database context
+	packages := []*model.PackageLicense{} // list of packages in the SBOM
+
+	for _, key := range keys {
+
+		if key == "" {
+			continue
+		}
+
+		parameters := map[string]interface{}{ // parameters
+			"key": key,
+		}
+
+		// query the packages that match the key or name
+		aql := `FOR sbom IN sbom
+			FILTER sbom.objtype == "SBOM" && sbom._key == @key
+			FOR packages IN sbom.content.components
+				LET lics = LENGTH(packages.licenses) > 0
+				? (FOR lic IN packages.licenses
+					FILTER LENGTH(packages.licenses) > 0
+						LET id = LENGTH(lic.license.id) > 0
+						? lic.license.id
+						: SPLIT(lic.license.name, "----")[0]
+						RETURN id
+					)
+				: [""]
+
+				FOR lic IN lics
+					RETURN {
+					"key": sbom._key,
+					"packagename": packages.name,
+					"packageversion": packages.version,
+					"url": packages.purl,
+					"name": lic,
+					"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+					}`
+
+		// run the query with patameters
+		if cursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
+			logger.Sugar().Errorf("Failed to run query: %v", err)
+		}
+
+		defer cursor.Close() // close the cursor when returning from this function
+
+		for cursor.HasMore() { // loop thru all of the documents
+
+			pkg := model.NewPackageLicense() // define a dependency package to be returned
+
+			if _, err = cursor.ReadDocument(ctx, pkg); err != nil { // fetch the document into the object
+				logger.Sugar().Errorf("Failed to read document: %v", err)
+			}
+
+			logger.Sugar().Infof("Got doc with key '%s' from query", key)
+
+			url := "https://spdx.org/licenses/" + pkg.License + ".html"
+
+			resp, err := http.Head(url)
+			if err == nil {
+				if resp.StatusCode == http.StatusOK {
+					pkg.URL = url
+				}
+			}
+
+			if resp != nil {
+				resp.Body.Close()
+			}
+
+			packages = append(packages, pkg)
+		}
+	}
+	return packages
+}
+
+// GetCVEs will return a list of packages that have CVEs
+func GetCVEs(keys []string) []*model.PackageCVE {
+	var cursor arangodb.Cursor        // db cursor for rows
+	var purlCursor arangodb.Cursor    // db cursor for rows
+	var err error                     // for error handling
+	var ctx = context.Background()    // use default database context
+	packages := []*model.PackageCVE{} // list of packages in the SBOM
+
+	for _, key := range keys {
+
+		if key == "" {
+			continue
+		}
+
+		parameters := map[string]interface{}{ // parameters
+			"key": key,
+		}
+
+		aql := `FOR sbom IN sbom
+				FILTER sbom.objtype == "SBOM" && sbom._key == @key
+				FOR packages IN sbom.content.components
+					LET purl = packages.purl != null ? packages.purl : CONCAT("pkg:swid/", packages.swid.name, "@", packages.swid.version, "?tag_id=", packages.swid.tagId)
+
+					RETURN {
+						"key": sbom._key,
+						"packagename": packages.name,
+						"packageversion": packages.version,
+						"url": purl,
+						"cve": "",
+						"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+						}`
+
+		// run the query with patameters
+		if purlCursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
+			logger.Sugar().Errorf("Failed to run query: %v", err)
+		}
+
+		defer purlCursor.Close() // close the cursor when returning from this function
+
+		for purlCursor.HasMore() { // list of purls
+			cvelist := make(map[string]bool)
+
+			pkg := model.NewPackageCVE()
+
+			if _, err = purlCursor.ReadDocument(ctx, &pkg); err != nil { // fetch the document into the object
+				logger.Sugar().Errorf("Failed to read document: %v", err)
+			}
+
+			purl := pkg.URL
+
+			pkgInfo, _ := models.PURLToPackage(purl)
+
+			osvPkg := models.PackageDetails{
+				Name:      pkgInfo.Name,
+				Version:   pkgInfo.Version,
+				Commit:    pkgInfo.Commit,
+				Ecosystem: models.Ecosystem(pkgInfo.Ecosystem),
+				CompareAs: models.Ecosystem(pkgInfo.Ecosystem),
+			}
+
+			parameters = map[string]interface{}{ // parameters
+				"name": pkgInfo.Name,
+			}
+
+			aql = `FOR vuln IN vulns
+					FOR affected in vuln.affected
+						FILTER (@name in vuln.affected[*].package.name AND affected.package.name == @name)
+						RETURN merge({ID: vuln._key}, vuln)`
+
+			if len(strings.TrimSpace(purl)) > 0 {
+				// Split the purl string by "@" and "?"
+				parts := strings.Split(purl, "@")
+				parts = strings.Split(parts[0], "?")
+
+				// The first part before "@" and "?" is in parts[0]
+				purl := parts[0]
+
+				parameters = map[string]interface{}{ // parameters
+					"name": pkgInfo.Name,
+					"purl": purl,
+				}
+
+				aql = `FOR vuln IN vulns
+						FOR affected in vuln.affected
+							FILTER (@name in vuln.affected[*].package.name AND affected.package.name == @name) OR
+								(@purl in vuln.affected[*].package.purl AND STARTS_WITH(affected.package.purl,@purl))
+							RETURN merge({ID: vuln._key}, vuln)`
+			}
+
+			// run the query with patameters
+			if cursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
+				logger.Sugar().Errorf("Failed to run query: %v", err)
+			}
+
+			score := 0.0
+			severity := ""
+			defer cursor.Close() // close the cursor when returning from this function
+
+			for cursor.HasMore() { // vuln found
+
+				var vuln models.Vulnerability
+
+				if _, err = cursor.ReadDocument(ctx, &vuln); err != nil { // fetch the document into the object
+					logger.Sugar().Errorf("Failed to read document: %v", err)
+				}
+
+				if models.IsAffected(vuln, osvPkg) && !cvelist[vuln.ID] {
+					cvepkg := model.NewPackageCVE()
+
+					cvelist[vuln.ID] = true
+
+					cvepkg.Key = pkg.Key
+					cvepkg.Language = pkg.Language
+					cvepkg.Name = pkg.Name
+					cvepkg.URL = pkg.URL
+					cvepkg.Version = pkg.Version
+					cvepkg.CVE = vuln.ID
+					cvepkg.Summary = vuln.Summary
+
+					if len(vuln.Severity) > 0 {
+						if vuln.Severity[0].Type == "CVSS_V3" {
+							if bm, err := metric_v3.NewBase().Decode(vuln.Severity[0].Score); err == nil {
+								if bm.Score() > score {
+									score = bm.Score()
+									severity = bm.Severity().String()
+								}
+							}
+						} else {
+							if bm, err := metric.NewBase().Decode(vuln.Severity[0].Score); err == nil {
+								if bm.Score() > score {
+									score = bm.Score()
+									severity = bm.Severity().String()
+								}
+							}
+						}
+					}
+					cvepkg.Score = score
+					cvepkg.Severity = severity
+
+					if severity == "" {
+						cvepkg.Severity = "None"
+					}
+
+					if cvepkg.CVE != "" {
+						packages = append(packages, cvepkg)
+					}
+				}
 			}
 		}
 	}
 
-	return c.JSON(pkg) // return the package in JSON format
+	sort.Slice(packages, func(i, j int) bool {
+		a, b := packages[i], packages[j]
+		return a.Score > b.Score || (a.Score == b.Score && (a.Name < b.Name || (a.Name == b.Name && a.Version < b.Version)))
+	})
+
+	return packages
 }
 
 // NewSBOM godoc
@@ -127,7 +347,7 @@ func GetPackage(c *fiber.Ctx) error {
 func NewSBOM(c *fiber.Ctx) error {
 
 	var err error                  // for error handling
-	var meta driver.DocumentMeta   // data about the document
+	var meta arangodb.DocumentMeta // data about the document
 	var ctx = context.Background() // use default database context
 	sbom := model.NewSBOM()        // define a package to be returned
 
@@ -135,12 +355,15 @@ func NewSBOM(c *fiber.Ctx) error {
 		return c.Status(503).Send([]byte(err.Error()))
 	}
 
-	cid, dbStr := database.MakeNFT(sbom) // normalize the object into NFTs and JSON string for db persistence
-
-	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
+	// for backward compatibility skip creating a NFT if the compid is part of the POST
+	// this will enable mapping of the sbom to the compid in the postgresdb
+	if sbom.Key == "" {
+		cid, dbStr := database.MakeNFT(sbom)        // normalize the object into NFTs and JSON string for db persistence
+		logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
+	}
 
 	// add the package to the database.  Ignore if it already exists since it will be identical
-	var resp driver.CollectionDocumentCreateResponse
+	var resp arangodb.CollectionDocumentCreateResponse
 
 	if resp, err = dbconn.Collection.CreateDocument(ctx, sbom); err != nil && !shared.IsConflict(err) {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
@@ -164,7 +387,7 @@ func NewSBOM(c *fiber.Ctx) error {
 func NewProvenance(c *fiber.Ctx) error {
 
 	var err error                       // for error handling
-	var meta driver.DocumentMeta        // data about the document
+	var meta arangodb.DocumentMeta      // data about the document
 	var ctx = context.Background()      // use default database context
 	provenance := model.NewProvenance() // define a package to be returned
 
@@ -177,7 +400,7 @@ func NewProvenance(c *fiber.Ctx) error {
 	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 
 	// add the package to the database.  Ignore if it already exists since it will be identical
-	var resp driver.CollectionDocumentCreateResponse
+	var resp arangodb.CollectionDocumentCreateResponse
 
 	if resp, err = dbconn.Collection.CreateDocument(ctx, provenance); err != nil && !shared.IsConflict(err) {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
@@ -206,9 +429,9 @@ func HealthCheck(c *fiber.Ctx) error {
 func setupRoutes(app *fiber.App) {
 
 	app.Get("/swagger/*", swagger.HandlerDefault) // handle displaying the swagger
-	app.Get("/msapi/package", GetPackages)        // list of packages
-	app.Get("/msapi/package/:key", GetPackage)    // single package based on name or key
-	app.Get("/msapi/deppkg", SBOMType)            // tell client that this microservice supports a full SBOM on the SBOM Post
+	app.Get("/msapi/packages", GetPackages)       // list of packages
+	app.Get("/msapi/package", GetPackages4SBOM)   // single package based on name or key
+	app.Get("/msapi/sbomtype", SBOMType)          // tell client that this microservice supports a full SBOM on the SBOM Post
 	app.Post("/msapi/sbom", NewSBOM)              // save a single package
 	app.Post("/msapi/provenance", NewProvenance)  // save a single package
 	app.Get("/health", HealthCheck)               // kubernetes health check

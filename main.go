@@ -432,7 +432,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/msapi/packages", GetPackages)       // list of packages
 	app.Get("/msapi/package", GetPackages4SBOM)   // single package based on name or key
 	app.Get("/msapi/sbomtype", SBOMType)          // tell client that this microservice supports a full SBOM on the SBOM Post
-	app.Post("/msapi/sbom", NewSBOM)              // save a single package
+	app.Post("/msapi/package", NewSBOM)           // save a single package
 	app.Post("/msapi/provenance", NewProvenance)  // save a single package
 	app.Get("/health", HealthCheck)               // kubernetes health check
 }

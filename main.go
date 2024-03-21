@@ -20,6 +20,7 @@ import (
 	"github.com/gofiber/swagger"
 	"github.com/ortelius/scec-commons/database"
 	"github.com/ortelius/scec-commons/model"
+	"github.com/pkg/errors"
 )
 
 var logger = database.InitLogger()
@@ -156,8 +157,6 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 				logger.Sugar().Errorf("Failed to read document: %v", err)
 			}
 
-			logger.Sugar().Infof("Got doc with key '%s' from query", key)
-
 			url := "https://spdx.org/licenses/" + pkg.License + ".html"
 
 			resp, err := http.Head(url)
@@ -178,20 +177,19 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 }
 
 // GetCVEs will return a list of packages that have CVEs
-func GetCVEs(keys []string) []*model.PackageCVE {
-	var cursor arangodb.Cursor        // db cursor for rows
-	var purlCursor arangodb.Cursor    // db cursor for rows
-	var err error                     // for error handling
-	var ctx = context.Background()    // use default database context
-	packages := []*model.PackageCVE{} // list of packages in the SBOM
+func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
+	var cursor arangodb.Cursor
+	var purlCursor arangodb.Cursor
+	var err error
+	var ctx = context.Background()
+	packages := []*model.PackageCVE{}
 
 	for _, key := range keys {
-
 		if key == "" {
 			continue
 		}
 
-		parameters := map[string]interface{}{ // parameters
+		parameters := map[string]interface{}{
 			"key": key,
 		}
 
@@ -209,26 +207,23 @@ func GetCVEs(keys []string) []*model.PackageCVE {
 						"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
 						}`
 
-		// run the query with patameters
 		if purlCursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
-			logger.Sugar().Errorf("Failed to run query: %v", err)
+			logger.Sugar().Errorf("Failed to run purlCursor query: %v", err)
+			return nil, errors.Wrap(err, "failed to run purlCursor query")
 		}
+		defer purlCursor.Close()
 
-		defer purlCursor.Close() // close the cursor when returning from this function
-
-		for purlCursor.HasMore() { // list of purls
+		for purlCursor.HasMore() {
 			cvelist := make(map[string]bool)
-
 			pkg := model.NewPackageCVE()
 
-			if _, err = purlCursor.ReadDocument(ctx, &pkg); err != nil { // fetch the document into the object
-				logger.Sugar().Errorf("Failed to read document: %v", err)
+			if _, err = purlCursor.ReadDocument(ctx, &pkg); err != nil {
+				logger.Sugar().Errorf("Failed to read purlCursor document: %v", err)
+				return nil, errors.Wrap(err, "failed to read purlCursor document")
 			}
 
 			purl := pkg.URL
-
 			pkgInfo, _ := models.PURLToPackage(purl)
-
 			osvPkg := models.PackageDetails{
 				Name:      pkgInfo.Name,
 				Version:   pkgInfo.Version,
@@ -237,7 +232,7 @@ func GetCVEs(keys []string) []*model.PackageCVE {
 				CompareAs: models.Ecosystem(pkgInfo.Ecosystem),
 			}
 
-			parameters = map[string]interface{}{ // parameters
+			parameters = map[string]interface{}{
 				"name": pkgInfo.Name,
 			}
 
@@ -247,14 +242,11 @@ func GetCVEs(keys []string) []*model.PackageCVE {
 						RETURN merge({ID: vuln._key}, vuln)`
 
 			if len(strings.TrimSpace(purl)) > 0 {
-				// Split the purl string by "@" and "?"
 				parts := strings.Split(purl, "@")
 				parts = strings.Split(parts[0], "?")
-
-				// The first part before "@" and "?" is in parts[0]
 				purl := parts[0]
 
-				parameters = map[string]interface{}{ // parameters
+				parameters = map[string]interface{}{
 					"name": pkgInfo.Name,
 					"purl": purl,
 				}
@@ -266,28 +258,27 @@ func GetCVEs(keys []string) []*model.PackageCVE {
 							RETURN merge({ID: vuln._key}, vuln)`
 			}
 
-			// run the query with patameters
 			if cursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
-				logger.Sugar().Errorf("Failed to run query: %v", err)
+				logger.Sugar().Errorf("Failed to run cursor query: %v", err)
+				return nil, errors.Wrap(err, "failed to run cursor query")
 			}
 
 			score := 0.0
 			severity := ""
-			defer cursor.Close() // close the cursor when returning from this function
+			defer cursor.Close()
 
-			for cursor.HasMore() { // vuln found
-
+			for cursor.HasMore() {
 				var vuln models.Vulnerability
 
-				if _, err = cursor.ReadDocument(ctx, &vuln); err != nil { // fetch the document into the object
-					logger.Sugar().Errorf("Failed to read document: %v", err)
+				if _, err = cursor.ReadDocument(ctx, &vuln); err != nil {
+					logger.Sugar().Errorf("Failed to read cursor document: %v", err)
+					return nil, errors.Wrap(err, "failed to read cursor document")
 				}
 
 				if models.IsAffected(vuln, osvPkg) && !cvelist[vuln.ID] {
 					cvepkg := model.NewPackageCVE()
 
 					cvelist[vuln.ID] = true
-
 					cvepkg.Key = pkg.Key
 					cvepkg.Language = pkg.Language
 					cvepkg.Name = pkg.Name
@@ -333,7 +324,7 @@ func GetCVEs(keys []string) []*model.PackageCVE {
 		return a.Score > b.Score || (a.Score == b.Score && (a.Name < b.Name || (a.Name == b.Name && a.Version < b.Version)))
 	})
 
-	return packages
+	return packages, nil
 }
 
 // NewSBOM godoc
@@ -347,7 +338,6 @@ func GetCVEs(keys []string) []*model.PackageCVE {
 func NewSBOM(c *fiber.Ctx) error {
 
 	var err error                  // for error handling
-	var meta arangodb.DocumentMeta // data about the document
 	var ctx = context.Background() // use default database context
 	sbom := model.NewSBOM()        // define a package to be returned
 
@@ -362,14 +352,18 @@ func NewSBOM(c *fiber.Ctx) error {
 		logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 	}
 
-	// add the package to the database.  Ignore if it already exists since it will be identical
-	var resp arangodb.CollectionDocumentCreateResponse
+	// add the package to the database.  Replace if it already exists
+	overwrite := true
+	options := &arangodb.CollectionDocumentCreateOptions{
+		Overwrite: &overwrite,
+	}
 
-	if resp, err = dbconn.Collection.CreateDocument(ctx, sbom); err != nil && !shared.IsConflict(err) {
+	// update existing docs and add if missing
+	if _, err = dbconn.Collection.CreateDocumentWithOptions(ctx, sbom, options); err != nil {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
 	}
-	meta = resp.DocumentMeta
-	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), meta.Key)
+
+	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), sbom.Key)
 
 	var res model.ResponseKey
 	res.Key = sbom.Key

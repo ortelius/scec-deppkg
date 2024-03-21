@@ -370,6 +370,16 @@ func NewSBOM(c *fiber.Ctx) error {
 		logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 	}
 
+	if sbom.Key == "" {
+		return c.Status(503).Send([]byte("Key not defined"))
+	}
+
+	if sbom.Content == nil {
+		var res model.ResponseKey
+		res.Key = ""
+		return c.JSON(res)
+	}
+
 	// add the package to the database.  Replace if it already exists
 	overwrite := true
 	options := &arangodb.CollectionDocumentCreateOptions{

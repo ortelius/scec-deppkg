@@ -95,8 +95,14 @@ func GetPackages4SBOM(c *fiber.Ctx) error {
 		return c.JSON(data)
 	}
 
+	cvedata, err := GetCVEs(keys)
+
+	if err != nil {
+		logger.Sugar().Errorf("GetCVEs returned %v", err)
+	}
+
 	data := map[string]interface{}{
-		"data": GetCVEs(keys),
+		"data": cvedata,
 	}
 	return c.JSON(data)
 }
@@ -178,18 +184,19 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 
 // GetCVEs will return a list of packages that have CVEs
 func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
-	var cursor arangodb.Cursor
-	var purlCursor arangodb.Cursor
-	var err error
-	var ctx = context.Background()
-	packages := []*model.PackageCVE{}
+	var cursor arangodb.Cursor        // db cursor for rows
+	var purlCursor arangodb.Cursor    // db cursor for rows
+	var err error                     // for error handling
+	var ctx = context.Background()    // use default database context
+	packages := []*model.PackageCVE{} // list of packages in the SBOM
 
 	for _, key := range keys {
+
 		if key == "" {
 			continue
 		}
 
-		parameters := map[string]interface{}{
+		parameters := map[string]interface{}{ // parameters
 			"key": key,
 		}
 
@@ -207,14 +214,17 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 						"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
 						}`
 
+		// run the query with patameters
 		if purlCursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
 			logger.Sugar().Errorf("Failed to run purlCursor query: %v", err)
 			return nil, errors.Wrap(err, "failed to run purlCursor query")
 		}
-		defer purlCursor.Close()
 
-		for purlCursor.HasMore() {
+		defer purlCursor.Close() // close the cursor when returning from this function
+
+		for purlCursor.HasMore() { // list of purls
 			cvelist := make(map[string]bool)
+
 			pkg := model.NewPackageCVE()
 
 			if _, err = purlCursor.ReadDocument(ctx, &pkg); err != nil {
@@ -223,7 +233,9 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 			}
 
 			purl := pkg.URL
+
 			pkgInfo, _ := models.PURLToPackage(purl)
+
 			osvPkg := models.PackageDetails{
 				Name:      pkgInfo.Name,
 				Version:   pkgInfo.Version,
@@ -232,7 +244,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 				CompareAs: models.Ecosystem(pkgInfo.Ecosystem),
 			}
 
-			parameters = map[string]interface{}{
+			parameters = map[string]interface{}{ // parameters
 				"name": pkgInfo.Name,
 			}
 
@@ -242,11 +254,14 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 						RETURN merge({ID: vuln._key}, vuln)`
 
 			if len(strings.TrimSpace(purl)) > 0 {
+				// Split the purl string by "@" and "?"
 				parts := strings.Split(purl, "@")
 				parts = strings.Split(parts[0], "?")
+
+				// The first part before "@" and "?" is in parts[0]
 				purl := parts[0]
 
-				parameters = map[string]interface{}{
+				parameters = map[string]interface{}{ // parameters
 					"name": pkgInfo.Name,
 					"purl": purl,
 				}
@@ -258,6 +273,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 							RETURN merge({ID: vuln._key}, vuln)`
 			}
 
+			// run the query with patameters
 			if cursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
 				logger.Sugar().Errorf("Failed to run cursor query: %v", err)
 				return nil, errors.Wrap(err, "failed to run cursor query")
@@ -265,9 +281,10 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 
 			score := 0.0
 			severity := ""
-			defer cursor.Close()
+			defer cursor.Close() // close the cursor when returning from this function
 
-			for cursor.HasMore() {
+			for cursor.HasMore() { // vuln found
+
 				var vuln models.Vulnerability
 
 				if _, err = cursor.ReadDocument(ctx, &vuln); err != nil {
@@ -279,6 +296,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 					cvepkg := model.NewPackageCVE()
 
 					cvelist[vuln.ID] = true
+
 					cvepkg.Key = pkg.Key
 					cvepkg.Language = pkg.Language
 					cvepkg.Name = pkg.Name

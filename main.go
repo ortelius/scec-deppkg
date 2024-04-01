@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sort"
 	"strings"
@@ -180,6 +181,81 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 		}
 	}
 	return packages
+}
+
+// Purl2Comp will read the purls in the SBOM and create corresponding comps
+func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
+	var purlCursor arangodb.Cursor // db cursor for rows
+	var err error                  // for error handling
+	var ctx = context.Background() // use default database context
+
+	parameters := map[string]interface{}{ // parameters
+		"key": key,
+	}
+
+	aql := `FOR sbom IN sbom
+			FILTER sbom.objtype == "SBOM" && sbom._key == @key
+			FOR packages IN sbom.content.components
+				LET purl = packages.purl != null ? packages.purl : CONCAT("pkg:swid/", packages.swid.name, "@", packages.swid.version, "?tag_id=", packages.swid.tagId)
+
+				RETURN {
+					"key": sbom._key,
+					"packagename": packages.name,
+					"packageversion": packages.version,
+					"url": purl,
+					"cve": "",
+					"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+					}`
+
+	// run the query with patameters
+	if purlCursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
+		logger.Sugar().Errorf("Failed to run purlCursor query: %v", err)
+	}
+
+	defer purlCursor.Close() // close the cursor when returning from this function
+
+	for purlCursor.HasMore() { // list of purls
+		pkg := model.NewPackageCVE()
+
+		if _, err = purlCursor.ReadDocument(ctx, &pkg); err != nil {
+			logger.Sugar().Errorf("Failed to read purlCursor document: %v", err)
+		}
+
+		type PurlPayload struct {
+			Purl string `json:"purl"`
+		}
+
+		purl := PurlPayload{Purl: pkg.URL}
+
+		// Marshal the JSON data into a byte array
+		jsonData, err := json.Marshal(purl)
+		if err != nil {
+			logger.Sugar().Infof("Error marshaling JSON: %v", err)
+			return
+		}
+		// Create a new Fiber Agent
+		agent := fiber.AcquireAgent()
+
+		// Set the request method, URI, and body
+		agent.Request().Header.SetMethod("POST")
+		agent.Request().SetRequestURI(dhurl + "/msapi/purl2comp")
+		agent.Request().SetBody(jsonData)
+
+		// Forward cookies from the incoming request
+		for _, cookie := range cookies {
+			agent.Request().Header.SetCookie(cookie.Name, cookie.Value)
+		}
+
+		// Execute the request
+		if err = agent.Parse(); err != nil {
+			logger.Sugar().Infof("Post purl2comp: %v", err)
+		} else {
+			statusCode, _, _ := agent.Bytes()
+			if statusCode != fiber.StatusOK {
+				logger.Sugar().Infof("unexpected status code: %d", statusCode)
+			}
+		}
+	}
 }
 
 // GetCVEs will return a list of packages that have CVEs
@@ -370,6 +446,16 @@ func NewSBOM(c *fiber.Ctx) error {
 		logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 	}
 
+	if sbom.Key == "" {
+		return c.Status(503).Send([]byte("Key not defined"))
+	}
+
+	if sbom.Content == nil {
+		var res model.ResponseKey
+		res.Key = ""
+		return c.JSON(res)
+	}
+
 	// add the package to the database.  Replace if it already exists
 	overwrite := true
 	options := &arangodb.CollectionDocumentCreateOptions{
@@ -382,6 +468,31 @@ func NewSBOM(c *fiber.Ctx) error {
 	}
 
 	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), sbom.Key)
+
+	dhurl := c.BaseURL()
+	logger.Sugar().Infof("dhurl=%s", dhurl)
+
+	var cookies []*http.Cookie
+
+	// var resp *http.Response
+	// resp, err = http.Get("http://localhost:8181/dmadminweb/API/login?user=admin&pass=admin")
+	//
+	// if err == nil {
+	// 	cookies = resp.Cookies()
+	// 	resp.Body.Close()
+	// }
+
+	// Visit all cookies in the request header
+	c.Request().Header.VisitAllCookie(func(key, value []byte) {
+		// Create a new http.Cookie and add it to the cookies slice
+		cookie := &http.Cookie{
+			Name:  string(key),
+			Value: string(value),
+		}
+		cookies = append(cookies, cookie)
+	})
+
+	Purl2Comp(dhurl, cookies, sbom.Key)
 
 	var res model.ResponseKey
 	res.Key = sbom.Key

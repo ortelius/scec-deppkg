@@ -22,6 +22,7 @@ import (
 	"github.com/ortelius/scec-commons/database"
 	"github.com/ortelius/scec-commons/model"
 	"github.com/pkg/errors"
+	"github.com/valyala/fasthttp"
 )
 
 var logger = database.InitLogger()
@@ -233,26 +234,29 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 			logger.Sugar().Infof("Error marshaling JSON: %v", err)
 			return
 		}
-		// Create a new Fiber Agent
-		agent := fiber.AcquireAgent()
 
-		// Set the request method, URI, and body
-		agent.Request().Header.SetMethod("POST")
-		agent.Request().SetRequestURI(dhurl + "/msapi/purl2comp")
-		agent.Request().SetBody(jsonData)
+		req := fasthttp.AcquireRequest()
+		resp := fasthttp.AcquireResponse()
+
+		defer fasthttp.ReleaseRequest(req)
+		defer fasthttp.ReleaseResponse(resp)
+
+		req.SetRequestURI(dhurl + "/msapi/purl2comp")
+		req.Header.SetMethod("POST")
+		req.Header.SetContentType("application/json")
+		req.SetBody(jsonData)
 
 		// Forward cookies from the incoming request
 		for _, cookie := range cookies {
-			agent.Request().Header.SetCookie(cookie.Name, cookie.Value)
+			req.Header.SetCookie(cookie.Name, cookie.Value)
 		}
 
 		// Execute the request
-		if err = agent.Parse(); err != nil {
+		if err := fasthttp.Do(req, resp); err != nil {
 			logger.Sugar().Infof("Post purl2comp: %v", err)
 		} else {
-			statusCode, _, _ := agent.Bytes()
-			if statusCode != fiber.StatusOK {
-				logger.Sugar().Infof("unexpected status code: %d", statusCode)
+			if resp.StatusCode() != fiber.StatusOK {
+				logger.Sugar().Infof("unexpected status code: %d", resp.StatusCode())
 			}
 		}
 	}
@@ -470,6 +474,23 @@ func NewSBOM(c *fiber.Ctx) error {
 	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), sbom.Key)
 
 	dhurl := c.BaseURL()
+
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.SetRequestURI(dhurl)
+
+	err = fasthttp.Do(req, resp)
+
+	if err == nil {
+		if resp.StatusCode() == fiber.StatusPermanentRedirect || resp.StatusCode() == fiber.StatusTemporaryRedirect {
+			dhurl = string(resp.Header.Peek("Location"))
+		}
+	}
+
 	logger.Sugar().Infof("dhurl=%s", dhurl)
 
 	var cookies []*http.Cookie

@@ -486,11 +486,12 @@ func NewSBOM(c *fiber.Ctx) error {
 	err = fasthttp.Do(req, resp)
 
 	if err == nil {
-		if resp.StatusCode() == fiber.StatusPermanentRedirect || resp.StatusCode() == fiber.StatusTemporaryRedirect {
+		if resp.StatusCode() >= 300 && resp.StatusCode() <= 399 {
 			dhurl = string(resp.Header.Peek("Location"))
 		}
 	}
 
+	dhurl = strings.Trim(dhurl, "/")
 	logger.Sugar().Infof("dhurl=%s", dhurl)
 
 	var cookies []*http.Cookie

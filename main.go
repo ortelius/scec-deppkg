@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -22,7 +23,6 @@ import (
 	"github.com/ortelius/scec-commons/database"
 	"github.com/ortelius/scec-commons/model"
 	"github.com/pkg/errors"
-	"github.com/valyala/fasthttp"
 )
 
 var logger = database.InitLogger()
@@ -235,30 +235,27 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 			return
 		}
 
-		req := fasthttp.AcquireRequest()
-		resp := fasthttp.AcquireResponse()
+		// Create a new HTTP request
+		req, err := http.NewRequest("POST", dhurl+"/msapi/purl2comp", bytes.NewBuffer(jsonData))
+		if err != nil {
+			logger.Sugar().Infoln("Error creating request:", err)
+		}
 
-		defer fasthttp.ReleaseRequest(req)
-		defer fasthttp.ReleaseResponse(resp)
-
-		req.SetRequestURI(dhurl + "/msapi/purl2comp")
-		req.Header.SetMethod("POST")
-		req.Header.SetContentType("application/json")
-		req.SetBody(jsonData)
+		req.Header.Set("Content-Type", "application/json")
 
 		// Forward cookies from the incoming request
 		for _, cookie := range cookies {
-			req.Header.SetCookie(cookie.Name, cookie.Value)
+			req.AddCookie(cookie)
 		}
 
-		// Execute the request
-		if err := fasthttp.Do(req, resp); err != nil {
-			logger.Sugar().Infof("Post purl2comp: %v", err)
-		} else {
-			if resp.StatusCode() != fiber.StatusOK {
-				logger.Sugar().Infof("unexpected status code: %d", resp.StatusCode())
-			}
+		// Send the request
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			logger.Sugar().Infoln("Error sending request:", err)
+			return
 		}
+		defer resp.Body.Close()
 	}
 }
 
@@ -475,34 +472,32 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	dhurl := c.BaseURL()
 
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.SetRequestURI(dhurl)
-
-	err = fasthttp.Do(req, resp)
-
-	if err == nil {
-		if resp.StatusCode() >= 300 && resp.StatusCode() <= 399 {
-			dhurl = string(resp.Header.Peek("Location"))
-		}
+	// Send an HTTP HEAD request to check the redirect
+	resp, err := http.Head(dhurl)
+	if err != nil {
+		logger.Sugar().Infoln("Error sending HEAD request:", err)
 	}
 
+	defer resp.Body.Close()
+
+	// Check if the response is a redirect
+	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
+		dhurl = resp.Header.Get("Location")
+	}
+
+	// dhurl := "http://localhost:5003"
 	dhurl = strings.Trim(dhurl, "/")
 	logger.Sugar().Infof("dhurl=%s", dhurl)
 
 	var cookies []*http.Cookie
 
-	// var resp *http.Response
-	// resp, err = http.Get("http://localhost:8181/dmadminweb/API/login?user=admin&pass=admin")
-	//
-	// if err == nil {
-	// 	cookies = resp.Cookies()
-	// 	resp.Body.Close()
-	// }
+	/* 	var resp2 *http.Response
+	   	resp2, err = http.Get("http://localhost:8181/dmadminweb/API/login?user=admin&pass=admin")
+
+	   	if err == nil {
+	   		cookies = resp2.Cookies()
+	   		resp2.Body.Close()
+	   	} */
 
 	// Visit all cookies in the request header
 	c.Request().Header.VisitAllCookie(func(key, value []byte) {

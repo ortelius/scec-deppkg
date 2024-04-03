@@ -480,6 +480,7 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	defer resp.Body.Close()
 
+	logger.Sugar().Infof("HTTP Response: %+v\n", resp)
 	// Check if the response is a redirect
 	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
 		dhurl = resp.Header.Get("Location")

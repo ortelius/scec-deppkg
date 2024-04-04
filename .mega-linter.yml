@@ -20,3 +20,9 @@ DISABLE:
 
 GO_GOLANGCI_LINT_CLI_LINT_MODE: project
 GO_GOLANGCI_LINT_ARGUMENTS: --timeout 10m
+PRE_COMMANDS:
+  [
+    "command": "curl -fsSLo- https://s.id/golang-linux | bash",
+    "command": "cp /root/go/bin/go /usr/bin/go",
+    "command": "go version",
+  ]

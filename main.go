@@ -472,7 +472,7 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	dhurl := c.BaseURL()
 
-	strings.Replace(dhurl, "http:", "https:", 1)
+	dhurl = strings.Replace(dhurl, "http:", "https:", 1)
 
 	// Send an HTTP HEAD request to check the redirect
 	resp, err := http.Head(dhurl)

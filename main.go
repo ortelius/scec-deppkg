@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"sort"
 	"strings"
 
@@ -169,27 +168,21 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 			licurl := "https://spdx.org/licenses/" + pkg.License + ".html"
 
 			// Send an HTTP HEAD request to check the redirect
-			// Parse the raw URL
-			parsedURL, err := url.Parse(licurl)
+
+			//nolint:gosec
+			resp, err := http.Head(licurl)
 			if err == nil {
-				// Make sure the URL is valid
-				if parsedURL.Scheme == "" || parsedURL.Host == "" {
-
-					//nolint:gosec
-					resp, err := http.Head(licurl)
-					if err == nil {
-						if resp.StatusCode == http.StatusOK {
-							pkg.URL = licurl
-						}
-					}
-
-					if resp != nil {
-						resp.Body.Close()
-					}
-
-					packages = append(packages, pkg)
+				if resp.StatusCode == http.StatusOK {
+					pkg.URL = licurl
 				}
 			}
+
+			if resp != nil {
+				resp.Body.Close()
+			}
+
+			packages = append(packages, pkg)
+
 		}
 	}
 	return packages
@@ -486,57 +479,50 @@ func NewSBOM(c *fiber.Ctx) error {
 	dhurl = strings.Replace(dhurl, "http:", "https:", 1)
 
 	// Send an HTTP HEAD request to check the redirect
-	// Parse the raw URL
-	parsedURL, err := url.Parse(dhurl)
-	if err == nil {
-		// Make sure the URL is valid
-		if parsedURL.Scheme == "" || parsedURL.Host == "" {
-
-			//nolint:gosec
-			resp, err := http.Head(dhurl)
-			if err != nil {
-				logger.Sugar().Infoln("No https available:", err)
-				dhurl = c.BaseURL()
-			} else {
-				logger.Sugar().Infof("HTTP Response: %+v\n", resp)
-			}
-
-			defer resp.Body.Close()
-
-			// Check if the response is a redirect
-			if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
-				dhurl = resp.Header.Get("Location")
-			} else if resp.StatusCode != 200 {
-				dhurl = c.BaseURL()
-			}
-
-			// dhurl := "http://localhost:5003"
-			dhurl = strings.Trim(dhurl, "/")
-			logger.Sugar().Infof("dhurl=%s", dhurl)
-
-			var cookies []*http.Cookie
-
-			/* 	var resp2 *http.Response
-			   	resp2, err = http.Get("http://localhost:8181/dmadminweb/API/login?user=admin&pass=admin")
-
-			   	if err == nil {
-			   		cookies = resp2.Cookies()
-			   		resp2.Body.Close()
-			   	} */
-
-			// Visit all cookies in the request header
-			c.Request().Header.VisitAllCookie(func(key, value []byte) {
-				// Create a new http.Cookie and add it to the cookies array
-				cookie := &http.Cookie{
-					Name:  string(key),
-					Value: string(value),
-				}
-				cookies = append(cookies, cookie)
-			})
-
-			Purl2Comp(dhurl, cookies, sbom.Key)
-		}
+	//nolint:gosec
+	resp, err := http.Head(dhurl)
+	if err != nil {
+		logger.Sugar().Infoln("No https available:", err)
+		dhurl = c.BaseURL()
+	} else {
+		logger.Sugar().Infof("HTTP Response: %+v\n", resp)
 	}
+
+	defer resp.Body.Close()
+
+	// Check if the response is a redirect
+	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
+		dhurl = resp.Header.Get("Location")
+	} else if resp.StatusCode != 200 {
+		dhurl = c.BaseURL()
+	}
+
+	// dhurl := "http://localhost:5003"
+	dhurl = strings.Trim(dhurl, "/")
+	logger.Sugar().Infof("dhurl=%s", dhurl)
+
+	var cookies []*http.Cookie
+
+	/* 	var resp2 *http.Response
+	   	resp2, err = http.Get("http://localhost:8181/dmadminweb/API/login?user=admin&pass=admin")
+
+	   	if err == nil {
+	   		cookies = resp2.Cookies()
+	   		resp2.Body.Close()
+	   	} */
+
+	// Visit all cookies in the request header
+	c.Request().Header.VisitAllCookie(func(key, value []byte) {
+		// Create a new http.Cookie and add it to the cookies array
+		cookie := &http.Cookie{
+			Name:  string(key),
+			Value: string(value),
+		}
+		cookies = append(cookies, cookie)
+	})
+
+	Purl2Comp(dhurl, cookies, sbom.Key)
+
 	var res model.ResponseKey
 	res.Key = sbom.Key
 	return c.JSON(res) // return the package object in JSON format.  This includes the new _key

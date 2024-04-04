@@ -472,24 +472,14 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	dhurl := c.BaseURL()
 
-	dhurl = strings.Replace(dhurl, "http:", "https:", 1)
+	// Access the X-Forwarded-Proto header from the request headers
+	forwardedProto := c.Get("X-Forwarded-Proto")
 
-	// Send an HTTP HEAD request to check the redirect
-	resp, err := http.Head(dhurl)
-	if err != nil {
-		logger.Sugar().Infoln("No https available:", err)
-		dhurl = c.BaseURL()
-	} else {
-		logger.Sugar().Infof("HTTP Response: %+v\n", resp)
-	}
-
-	defer resp.Body.Close()
-
-	// Check if the response is a redirect
-	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
-		dhurl = resp.Header.Get("Location")
-	} else if resp.StatusCode != 200 {
-		dhurl = c.BaseURL()
+	// Check if X-Forwarded-Proto header is present
+	if forwardedProto != "" {
+		// Replace the protocol in the base URL with X-Forwarded-Proto
+		dhurl = strings.Replace(dhurl, "http", forwardedProto, 1)
+		dhurl = strings.Replace(dhurl, "https", forwardedProto, 1)
 	}
 
 	// dhurl := "http://localhost:5003"

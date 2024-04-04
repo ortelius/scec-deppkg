@@ -472,18 +472,24 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	dhurl := c.BaseURL()
 
+	strings.Replace(dhurl, "http:", "https:", 1)
+
 	// Send an HTTP HEAD request to check the redirect
 	resp, err := http.Head(dhurl)
 	if err != nil {
-		logger.Sugar().Infoln("Error sending HEAD request:", err)
+		logger.Sugar().Infoln("No https available:", err)
+		dhurl = c.BaseURL()
+	} else {
+		logger.Sugar().Infof("HTTP Response: %+v\n", resp)
 	}
 
 	defer resp.Body.Close()
 
-	logger.Sugar().Infof("HTTP Response: %+v\n", resp)
 	// Check if the response is a redirect
 	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
 		dhurl = resp.Header.Get("Location")
+	} else if resp.StatusCode != 200 {
+		dhurl = c.BaseURL()
 	}
 
 	// dhurl := "http://localhost:5003"

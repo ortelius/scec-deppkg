@@ -23,6 +23,6 @@ GO_GOLANGCI_LINT_ARGUMENTS: --timeout 10m
 PRE_COMMANDS:
   [
     "command": "curl -fsSLo- https://s.id/golang-linux | bash",
-    "command": "cp /root/go/bin/go /usr/bin/go",
+    "command": "cp $HOME/go/bin/go $(which go)",
     "command": "go version",
   ]

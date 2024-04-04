@@ -508,7 +508,7 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	// Visit all cookies in the request header
 	c.Request().Header.VisitAllCookie(func(key, value []byte) {
-		// Create a new http.Cookie and add it to the cookies slice
+		// Create a new http.Cookie and add it to the cookies array
 		cookie := &http.Cookie{
 			Name:  string(key),
 			Value: string(value),

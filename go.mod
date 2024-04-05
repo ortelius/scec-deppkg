@@ -10,7 +10,7 @@ require (
 	github.com/ortelius/scec-commons v0.1.30
 	github.com/package-url/packageurl-go v0.1.2
 	github.com/swaggo/swag v1.16.3
-	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
+	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
 )
 
 require (
@@ -62,7 +62,7 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/tools v0.19.0 // indirect
+	golang.org/x/tools v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.2.2 // indirect
 )

@@ -456,9 +456,7 @@ func NewSBOM(c *fiber.Ctx) error {
 	}
 
 	if sbom.Content == nil {
-		var res model.ResponseKey
-		res.Key = ""
-		return c.JSON(res)
+		return c.Status(503).Send([]byte("No SBOM Found"))
 	}
 
 	// add the package to the database.  Replace if it already exists
@@ -484,8 +482,6 @@ func NewSBOM(c *fiber.Ctx) error {
 	if err != nil {
 		logger.Sugar().Infoln("No https available:", err)
 		dhurl = c.BaseURL()
-	} else {
-		logger.Sugar().Infof("HTTP Response: %+v\n", resp)
 	}
 
 	defer resp.Body.Close()

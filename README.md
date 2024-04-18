@@ -1,4 +1,7 @@
 # Ortelius v11 Package Microservice
+
+> Version 11.0.0
+
 RestAPI for the package Object
 ![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)
 ![license](https://img.shields.io/github/license/ortelius/scec-deppkg)
@@ -10,61 +13,76 @@ RestAPI for the package Object
 
 ![Discord](https://img.shields.io/discord/722468819091849316)
 
-## Version: 11.0.0
+## Path Table
 
-### Terms of service
-<http://swagger.io/terms/>
+| Method | Path | Description |
+| --- | --- | --- |
+| GET | [/msapi/package](#getmsapipackage) | Get a List of Packages |
+| GET | [/msapi/package/:key](#getmsapipackagekey) | Get a Package |
+| POST | [/msapi/provenance](#postmsapiprovenance) | Upload Provenance JSON |
+| POST | [/msapi/sbom](#postmsapisbom) | Upload an SBOM |
 
-**Contact information:**
-Ortelius Google Group
-<ortelius-dev@googlegroups.com>
+## Reference Table
 
-**License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+| Name | Path | Description |
+| --- | --- | --- |
 
----
-### /msapi/package
+## Path Details
 
-#### GET
-##### Summary
+***
 
+### [GET]/msapi/package
+
+- Summary  
 Get a List of Packages
 
-##### Description
-
+- Description  
 Get a list of Packages.
 
-##### Responses
+#### Responses
 
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
+- 200 OK
 
----
-### /msapi/package/:key
+***
 
-#### GET
-##### Summary
+### [GET]/msapi/package/:key
 
+- Summary  
 Get a Package
 
-##### Description
-
+- Description  
 Get a package based on the _key or name.
 
-##### Responses
+#### Responses
 
-| Code | Description |
-|------|-------------|
-| 200  | OK          |
+- 200 OK
 
----
-### /msapi/sbom
+***
 
-#### POST
-##### Summary
+### [POST]/msapi/provenance
 
+- Summary  
+Upload Provenance JSON
+
+- Description  
+Create a new Provenance and persist it
+
+#### Responses
+
+- 200 OK
+
+***
+
+### [POST]/msapi/sbom
+
+- Summary  
 Upload an SBOM
 
-##### Description
-
+- Description  
 Create a new SBOM and persist it
+
+#### Responses
+
+- 200 OK
+
+## References

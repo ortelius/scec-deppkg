@@ -68,9 +68,3 @@ Upload an SBOM
 ##### Description
 
 Create a new SBOM and persist it
-
-##### Responses
-
-| Code | Description |
-|------|-------------|
-| 200  | OK          |

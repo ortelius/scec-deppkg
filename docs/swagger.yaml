@@ -25,40 +25,53 @@ paths:
   /msapi/package:
     get:
       consumes:
-        - "*/*"
+      - '*/*'
       description: Get a list of Packages.
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
       summary: Get a List of Packages
       tags:
-        - Packages
+      - Packages
   /msapi/package/:key:
     get:
       consumes:
-        - "*/*"
+      - '*/*'
       description: Get a package based on the _key or name.
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
       summary: Get a Package
       tags:
-        - package
+      - package
+  /msapi/provenance:
+    post:
+      consumes:
+      - application/json
+      description: Create a new Provenance and persist it
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Upload Provenance JSON
+      tags:
+      - provenance
   /msapi/sbom:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new SBOM and persist it
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
       summary: Upload an SBOM
       tags:
-        - sbom
+      - sbom
 swagger: "2.0"

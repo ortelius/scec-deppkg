@@ -75,8 +75,8 @@ github.com/multiformats/go-multihash v0.2.3 h1:7Lyc8XfX/IY2jWb/gI7JP+o7JEq9hOa7B
 github.com/multiformats/go-multihash v0.2.3/go.mod h1:dXgKXCXjBzdscBLk9JkjINiEsCKRVch90MdaGiKsvSM=
 github.com/multiformats/go-varint v0.0.7 h1:sWSGR+f/eu5ABZA2ZpYKBILXTTs9JWpdEM/nEGOHFS8=
 github.com/multiformats/go-varint v0.0.7/go.mod h1:r8PUYw/fD/SjBCiKOoDlGF6QawOELpZAu9eioSos/OU=
-github.com/ortelius/scec-commons v0.1.30 h1:4Mgx1uC8xDjibtg6Sbn2tN2sYeH7lo/OkZs97mSCOdY=
-github.com/ortelius/scec-commons v0.1.30/go.mod h1:owCo97IeEAIs6E4xB+mauGPMabh8HaGpaNtbyv1A8kE=
+github.com/ortelius/scec-commons v0.1.31 h1:rtI1fNaz2EhuMVRi209BsItZKjBHVJrScESpRvrTS1U=
+github.com/ortelius/scec-commons v0.1.31/go.mod h1:81QxQJo2TTVAMexjeSkV0SWpNFWUAhxGGJxC0+96Yt8=
 github.com/package-url/packageurl-go v0.1.2 h1:0H2DQt6DHd/NeRlVwW4EZ4oEI6Bn40XlNPRqegcxuo4=
 github.com/package-url/packageurl-go v0.1.2/go.mod h1:uQd4a7Rh3ZsVg5j0lNyAfyxIeGde9yrlhjF78GzeW0c=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=

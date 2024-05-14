@@ -83,10 +83,21 @@ func GetPackages(c *fiber.Ctx) error {
 func GetPackages4SBOM(c *fiber.Ctx) error {
 
 	compid := c.Query("compid")
-	keys := strings.Split(c.Query("appid"), ",")
+	appid := c.Query("appid")
+
+	if appid != "" {
+		appid = strings.ReplaceAll(appid, "ap", "")
+		appid = strings.ReplaceAll(appid, "av", "")
+		appid = strings.ReplaceAll(appid, "co", "")
+		appid = strings.ReplaceAll(appid, "cv", "")
+	}
+
+	keys := strings.Split(appid, ",")
 	deptype := c.Query("deptype")
 
 	if compid != "" {
+		compid = strings.ReplaceAll(compid, "co", "")
+		compid = strings.ReplaceAll(compid, "cv", "")
 		keys = append(keys, compid)
 	}
 

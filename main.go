@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -44,7 +45,6 @@ func GetPackages(c *fiber.Ctx) error {
 
 	// query all the package in the collection
 	aql := `FOR sbom in sbom
-			FILTER (sbom.objtype == 'SBOM')
 			RETURN sbom`
 
 	// execute the query with no parameters
@@ -139,7 +139,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 
 		// query the packages that match the key or name
 		aql := `FOR sbom IN sbom
-			FILTER sbom.objtype == "SBOM" && sbom._key == @key
+			FILTER sbom._key == @key
 			FOR packages IN sbom.content.components
 				LET lics = LENGTH(packages.licenses) > 0
 				? (FOR lic IN packages.licenses
@@ -151,6 +151,8 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 					)
 				: [""]
 
+				LET pkgType = SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+
 				FOR lic IN lics
 					RETURN {
 					"key": sbom._key,
@@ -158,7 +160,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 					"packageversion": packages.version,
 					"url": packages.purl,
 					"name": lic,
-					"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+					"pkgtype": pkgType
 					}`
 
 		// run the query with patameters
@@ -210,7 +212,7 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 	}
 
 	aql := `FOR sbom IN sbom
-			FILTER sbom.objtype == "SBOM" && sbom._key == @key
+			FILTER sbom._key == @key
 			FOR packages IN sbom.content.components
 				LET purl = packages.purl != null ? packages.purl : CONCAT("pkg:swid/", packages.swid.name, "@", packages.swid.version, "?tag_id=", packages.swid.tagId)
 
@@ -293,7 +295,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 		}
 
 		aql := `FOR sbom IN sbom
-				FILTER sbom.objtype == "SBOM" && sbom._key == @key
+				FILTER sbom._key == @key
 				FOR packages IN sbom.content.components
 					LET purl = packages.purl != null ? packages.purl : CONCAT("pkg:swid/", packages.swid.name, "@", packages.swid.version, "?tag_id=", packages.swid.tagId)
 
@@ -579,6 +581,17 @@ func SBOMType(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
+// Create an index on the specified field
+func createIndex(col arangodb.Collection, field string) {
+	ctx := context.Background()
+	var indexOptions arangodb.CreatePersistentIndexOptions
+
+	_, _, err := col.EnsurePersistentIndex(ctx, []string{field}, &indexOptions)
+	if err != nil {
+		fmt.Println("Failed to create index on", field, ":", err)
+	}
+}
+
 // HealthCheck for kubernetes to determine if it is in a good state
 func HealthCheck(c *fiber.Ctx) error {
 	return c.SendString("OK")
@@ -625,6 +638,15 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowOrigins: "*",
 	}))
+
+	// Setup indexes
+	// Create the recommended indexes
+	createIndex(dbconn.Collection, "objtype")
+	createIndex(dbconn.Collection, "content.components[*].name")
+	createIndex(dbconn.Collection, "content.components[*].version")
+	createIndex(dbconn.Collection, "content.components[*].purl")
+	createIndex(dbconn.Collection, "content.components[*].licenses[*].license.id")
+	createIndex(dbconn.Collection, "content.components[*].licenses[*].license.name")
 
 	setupRoutes(app) // define the routes for this microservice
 

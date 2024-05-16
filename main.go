@@ -581,17 +581,6 @@ func SBOMType(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// Create an index on the specified field
-func createIndex(col arangodb.Collection, field string) {
-	ctx := context.Background()
-	var indexOptions arangodb.CreatePersistentIndexOptions
-
-	_, _, err := col.EnsurePersistentIndex(ctx, []string{field}, &indexOptions)
-	if err != nil {
-		fmt.Println("Failed to create index on", field, ":", err)
-	}
-}
-
 // HealthCheck for kubernetes to determine if it is in a good state
 func HealthCheck(c *fiber.Ctx) error {
 	return c.SendString("OK")
@@ -638,15 +627,6 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowOrigins: "*",
 	}))
-
-	// Setup indexes
-	// Create the recommended indexes
-	createIndex(dbconn.Collection, "objtype")
-	createIndex(dbconn.Collection, "content.components[*].name")
-	createIndex(dbconn.Collection, "content.components[*].version")
-	createIndex(dbconn.Collection, "content.components[*].purl")
-	createIndex(dbconn.Collection, "content.components[*].licenses[*].license.id")
-	createIndex(dbconn.Collection, "content.components[*].licenses[*].license.name")
 
 	setupRoutes(app) // define the routes for this microservice
 

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"sort"
 	"strings"
@@ -27,6 +28,64 @@ import (
 
 var logger = database.InitLogger()
 var dbconn = database.InitializeDB("sbom")
+var licensesMap = make(map[string]License)
+
+// License represents the structure of each license in the JSON data
+type License struct {
+	Reference       string   `json:"reference"`
+	IsDeprecated    bool     `json:"isDeprecatedLicenseId"`
+	DetailsURL      string   `json:"detailsUrl"`
+	ReferenceNumber int      `json:"referenceNumber"`
+	Name            string   `json:"name"`
+	LicenseID       string   `json:"licenseId"`
+	SeeAlso         []string `json:"seeAlso"`
+	IsOsiApproved   bool     `json:"isOsiApproved"`
+}
+
+// Licenses represents the structure of the JSON data
+type Licenses struct {
+	Licenses []License `json:"licenses"`
+}
+
+// fetchAndParseLicenses fetches the JSON data from the URL and parses it into a map
+func fetchAndParseLicenses(licensesMap map[string]License) {
+
+	// Fetch the JSON data from the URL
+	url := "https://github.com/spdx/license-list-data/raw/main/json/licenses.json"
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	// Unmarshal the JSON data into a Licenses struct
+	var licensesData Licenses
+	if err := json.Unmarshal(body, &licensesData); err != nil {
+		return
+	}
+
+	// Create a map from the Licenses struct
+
+	for _, license := range licensesData.Licenses {
+		licensesMap[license.LicenseID] = license
+	}
+}
+
+// getLicenseURL checks if the given license ID exists in the map
+func getLicenseURL(licensesMap map[string]License, licenseID string) string {
+	if lic, exists := licensesMap[licenseID]; exists {
+		return lic.Reference
+	}
+
+	return ""
+}
 
 // GetPackages godoc
 // @Summary Get a List of Packages
@@ -177,21 +236,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 				logger.Sugar().Errorf("Failed to read document: %v", err)
 			}
 
-			licurl := "https://spdx.org/licenses/" + pkg.License + ".html"
-
-			// Send an HTTP HEAD request to check the redirect
-
-			//nolint:gosec
-			resp, err := http.Head(licurl)
-			if err == nil {
-				if resp.StatusCode == http.StatusOK {
-					pkg.URL = licurl
-				}
-			}
-
-			if resp != nil {
-				resp.Body.Close()
-			}
+			pkg.URL = getLicenseURL(licensesMap, pkg.License)
 
 			packages = append(packages, pkg)
 
@@ -627,6 +672,7 @@ func main() {
 		AllowOrigins: "*",
 	}))
 
+	fetchAndParseLicenses(licensesMap)
 	setupRoutes(app) // define the routes for this microservice
 
 	if err := app.Listen(port); err != nil { // start listening for incoming connections

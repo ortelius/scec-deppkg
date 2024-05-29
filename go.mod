@@ -7,10 +7,10 @@ toolchain go1.22.3
 require (
 	github.com/arangodb/go-driver/v2 v2.1.0
 	github.com/gofiber/fiber/v2 v2.52.4
-	github.com/ortelius/scec-commons v0.1.31
-	github.com/package-url/packageurl-go v0.1.2
+	github.com/ortelius/scec-commons v0.1.32
+	github.com/package-url/packageurl-go v0.1.3
 	github.com/swaggo/swag v1.16.3
-	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842
+	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10
 )
 
 require (
@@ -18,7 +18,7 @@ require (
 	github.com/dchest/siphash v1.2.3 // indirect
 	github.com/goark/errs v1.3.2 // indirect
 	github.com/kkdai/maglev v0.2.0 // indirect
-	github.com/rs/zerolog v1.32.0 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/sanity-io/litter v1.5.5 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.52.0 // indirect
+	github.com/valyala/fasthttp v1.54.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect

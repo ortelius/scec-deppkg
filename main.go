@@ -216,7 +216,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 					"key": sbom._key,
 					"packagename": packages.name,
 					"packageversion": packages.version,
-					"url": packages.purl,
+					"purl": packages.purl,
 					"name": lic,
 					"pkgtype": pkgType
 					}`
@@ -264,7 +264,7 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 					"key": sbom._key,
 					"packagename": packages.name,
 					"packageversion": packages.version,
-					"url": purl,
+					"purl": purl,
 					"cve": "",
 					"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
 					}`
@@ -287,7 +287,7 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 			Purl string `json:"purl"`
 		}
 
-		purl := PurlPayload{Purl: pkg.URL}
+		purl := PurlPayload{Purl: pkg.Purl}
 
 		// Marshal the JSON data into a byte array
 		jsonData, err := json.Marshal(purl)
@@ -347,7 +347,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 						"key": sbom._key,
 						"packagename": packages.name,
 						"packageversion": packages.version,
-						"url": purl,
+						"purl": purl,
 						"cve": "",
 						"pkgtype": SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
 						}`
@@ -370,7 +370,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 				return nil, errors.Wrap(err, "failed to read purlCursor document")
 			}
 
-			purl := pkg.URL
+			purl := pkg.Purl
 
 			pkgInfo, _ := models.PURLToPackage(purl)
 
@@ -439,6 +439,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 					cvepkg.Language = pkg.Language
 					cvepkg.Name = pkg.Name
 					cvepkg.URL = pkg.URL
+					cvepkg.Purl = pkg.Purl
 					cvepkg.Version = pkg.Version
 					cvepkg.CVE = vuln.ID
 					cvepkg.Summary = vuln.Summary

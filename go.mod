@@ -1,4 +1,4 @@
-module cli
+module github.com/ortelius/scec-deppkg
 
 go 1.22
 

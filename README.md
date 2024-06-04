@@ -15,12 +15,12 @@ RestAPI for the package Object
 
 ## Path Table
 
-| Method | Path                                       | Description            |
-|--------|--------------------------------------------|------------------------|
-| GET    | [/msapi/package](#getmsapipackage)         | Get a List of Packages |
-| GET    | [/msapi/package/:key](#getmsapipackagekey) | Get a Package          |
-| POST   | [/msapi/provenance](#postmsapiprovenance)  | Upload Provenance JSON |
-| POST   | [/msapi/sbom](#postmsapisbom)              | Upload an SBOM         |
+| Method | Path | Description |
+| --- | --- | --- |
+| GET | [/msapi/package](#getmsapipackage) | Get a List of Packages |
+| GET | [/msapi/package/:key](#getmsapipackagekey) | Get a Package |
+| POST | [/msapi/provenance](#postmsapiprovenance) | Upload Provenance JSON |
+| POST | [/msapi/sbom](#postmsapisbom) | Upload an SBOM |
 
 ## Reference Table
 
@@ -33,10 +33,10 @@ RestAPI for the package Object
 
 ### [GET]/msapi/package
 
-- Summary
+- Summary  
 Get a List of Packages
 
-- Description
+- Description  
 Get a list of Packages.
 
 #### Responses
@@ -47,10 +47,10 @@ Get a list of Packages.
 
 ### [GET]/msapi/package/:key
 
-- Summary
+- Summary  
 Get a Package
 
-- Description
+- Description  
 Get a package based on the _key or name.
 
 #### Responses
@@ -61,10 +61,10 @@ Get a package based on the _key or name.
 
 ### [POST]/msapi/provenance
 
-- Summary
+- Summary  
 Upload Provenance JSON
 
-- Description
+- Description  
 Create a new Provenance and persist it
 
 #### Responses
@@ -75,10 +75,10 @@ Create a new Provenance and persist it
 
 ### [POST]/msapi/sbom
 
-- Summary
+- Summary  
 Upload an SBOM
 
-- Description
+- Description  
 Create a new SBOM and persist it
 
 #### Responses

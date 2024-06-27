@@ -35,7 +35,7 @@ const docTemplate = `{
                 "tags": [
                     "Packages"
                 ],
-                "summary": "Get a List of Packages",
+                "summary": "Get a List of Packages that are like the passed package name and version",
                 "responses": {
                     "200": {
                         "description": "OK"

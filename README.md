@@ -17,7 +17,7 @@ RestAPI for the package Object
 
 | Method | Path | Description |
 | --- | --- | --- |
-| GET | [/msapi/package](#getmsapipackage) | Get a List of Packages |
+| GET | [/msapi/package](#getmsapipackage) | Get a List of Packages that are like the passed package name and version |
 | GET | [/msapi/package/:key](#getmsapipackagekey) | Get a Package |
 | POST | [/msapi/provenance](#postmsapiprovenance) | Upload Provenance JSON |
 | POST | [/msapi/sbom](#postmsapisbom) | Upload an SBOM |
@@ -34,7 +34,7 @@ RestAPI for the package Object
 ### [GET]/msapi/package
 
 - Summary  
-Get a List of Packages
+Get a List of Packages that are like the passed package name and version
 
 - Description  
 Get a list of Packages.

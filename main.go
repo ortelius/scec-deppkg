@@ -88,7 +88,7 @@ func getLicenseURL(licensesMap map[string]License, licenseID string) string {
 }
 
 // GetPackages godoc
-// @Summary Get a List of Packages
+// @Summary Get a List of Packages that are like the passed package name and version
 // @Description Get a list of Packages.
 // @Tags Packages
 // @Accept */*
@@ -97,37 +97,100 @@ func getLicenseURL(licensesMap map[string]License, licenseID string) string {
 // @Router /msapi/package [get]
 func GetPackages(c *fiber.Ctx) error {
 
-	var cursor arangodb.Cursor     // db cursor for rows
-	var err error                  // for error handling
-	var ctx = context.Background() // use default database context
+	var cursor arangodb.Cursor            // db cursor for rows
+	var err error                         // for error handling
+	var ctx = context.Background()        // use default database context
+	packages := []*model.PackageLicense{} // list of packages in the SBOM
+
+	pkgname := "%" + c.Query("pkgname") + "%"
+	pkgversion := "%" + c.Query("pkgversion") + "%"
+
+	parameters := map[string]interface{}{
+		"pkgname": pkgname,
+	}
 
 	// query all the package in the collection
-	aql := `FOR sbom in sbom
-			RETURN sbom`
+	aql := `FOR sbom IN sbom
+			FOR packages IN sbom.content.components
+				LET lics = LENGTH(packages.licenses) > 0
+				? (FOR lic IN packages.licenses
+					FILTER LENGTH(packages.licenses) > 0
+						LET id = LENGTH(lic.license.id) > 0
+						? lic.license.id
+						: SPLIT(lic.license.name, "----")[0]
+						RETURN id
+					)
+				: [""]
+
+				LET pkgType = SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+
+				FOR lic IN lics
+				    FILTER packages.name LIKE @pkgname
+					RETURN {
+					"key": sbom._key,
+					"packagename": packages.name,
+					"packageversion": packages.version,
+					"purl": packages.purl,
+					"name": lic,
+					"pkgtype": pkgType
+					}`
+
+	if pkgversion != "" {
+		aql = `FOR sbom IN sbom
+		FOR packages IN sbom.content.components
+			LET lics = LENGTH(packages.licenses) > 0
+			? (FOR lic IN packages.licenses
+				FILTER LENGTH(packages.licenses) > 0
+					LET id = LENGTH(lic.license.id) > 0
+					? lic.license.id
+					: SPLIT(lic.license.name, "----")[0]
+					RETURN id
+				)
+			: [""]
+
+			LET pkgType = SPLIT(SPLIT(packages.purl, ":")[1], "/")[0]
+
+			FOR lic IN lics
+				FILTER packages.name LIKE @pkgname and packages.version LIKE @pkgversion
+				RETURN {
+				"key": sbom._key,
+				"packagename": packages.name,
+				"packageversion": packages.version,
+				"purl": packages.purl,
+				"name": lic,
+				"pkgtype": pkgType
+				}`
+
+		parameters = map[string]interface{}{
+			"pkgname":    pkgname,
+			"pkgversion": pkgversion,
+		}
+	}
 
 	// execute the query with no parameters
-	if cursor, err = dbconn.Database.Query(ctx, aql, nil); err != nil {
+	if cursor, err = dbconn.Database.Query(ctx, aql, &arangodb.QueryOptions{BindVars: parameters}); err != nil {
 		logger.Sugar().Errorf("Failed to run query: %v", err) // log error
 	}
 
 	defer cursor.Close() // close the cursor when returning from this function
 
-	var packages []*model.Package // define a list of packages to be returned
-
 	for cursor.HasMore() { // loop thru all of the documents
 
-		pkg := model.NewPackage()      // fetched dependency package
-		var meta arangodb.DocumentMeta // data about the fetch
+		pkg := model.NewPackageLicense() // define a dependency package to be returned
 
-		// fetch a document from the cursor
-		if meta, err = cursor.ReadDocument(ctx, pkg); err != nil {
+		if _, err = cursor.ReadDocument(ctx, pkg); err != nil { // fetch the document into the object
 			logger.Sugar().Errorf("Failed to read document: %v", err)
 		}
-		packages = append(packages, pkg)                                   // add the Dependency to the list
-		logger.Sugar().Infof("Got doc with key '%s' from query", meta.Key) // log the key
-	}
 
-	return c.JSON(packages) // return the list of dependencies in JSON format
+		pkg.URL = getLicenseURL(licensesMap, pkg.License)
+
+		packages = append(packages, pkg)
+
+	}
+	data := map[string]interface{}{
+		"data": packages,
+	}
+	return c.JSON(data)
 }
 
 // GetPackages4SBOM godoc

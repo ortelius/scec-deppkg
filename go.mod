@@ -2,11 +2,11 @@ module github.com/ortelius/scec-deppkg
 
 go 1.22
 
-toolchain go1.22.4
+toolchain go1.22.5
 
 require (
 	github.com/arangodb/go-driver/v2 v2.1.0
-	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/ortelius/scec-commons v0.1.32
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/swaggo/swag v1.16.3
@@ -36,7 +36,7 @@ require (
 	github.com/go-openapi/spec v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/goark/go-cvss v1.6.7
-	github.com/gofiber/swagger v1.0.0
+	github.com/gofiber/swagger v1.1.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/ipfs/go-cid v0.4.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect

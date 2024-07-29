@@ -451,8 +451,8 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 
 			aql = `FOR vuln IN vulns
 					FOR affected in vuln.affected
-						FILTER (@name in vuln.affected[*].package.name AND affected.package.name == @name)
-						RETURN merge({ID: vuln._key}, vuln)`
+						FILTER affected.package.name == @name
+						RETURN DISTINCT merge({ID: vuln._key}, vuln)`
 
 			if len(strings.TrimSpace(purl)) > 0 {
 				// Split the purl string by "@" and "?"
@@ -469,9 +469,9 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 
 				aql = `FOR vuln IN vulns
 						FOR affected in vuln.affected
-							FILTER (@name in vuln.affected[*].package.name AND affected.package.name == @name) OR
-								(@purl in vuln.affected[*].package.purl AND STARTS_WITH(affected.package.purl,@purl))
-							RETURN merge({ID: vuln._key}, vuln)`
+							FILTER affected.package.name == @name OR
+								SPLIT(affected.package.purl,'?') == @purl
+								RETURN DISTINCT merge({ID: vuln._key}, vuln)`
 			}
 
 			// run the query with patameters
@@ -493,7 +493,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 					return nil, errors.Wrap(err, "failed to read cursor document")
 				}
 
-				if models.IsAffected(vuln, osvPkg) && !cvelist[vuln.ID] {
+				if !cvelist[vuln.ID] && models.IsAffected(vuln, osvPkg) {
 					cvepkg := model.NewPackageCVE()
 
 					cvelist[vuln.ID] = true

@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   scec-deppkg:
   - apiVersion: v2
+    appVersion: 11.0.710
+    created: "2024-07-30T17:37:39.306608789Z"
+    description: Domain microservice
+    digest: 4486c1ea8e1540dd2ce08af4b01830cd3de33e427796d7158cab73b857c8d1bb
+    icon: https://ortelius.github.io/ortelius-charts/logo.png
+    name: scec-deppkg
+    type: application
+    urls:
+    - https://github.com/ortelius/scec-deppkg/releases/download/scec-deppkg-11.0.710/scec-deppkg-11.0.710.tgz
+    version: 11.0.710
+  - apiVersion: v2
     appVersion: 11.0.709
     created: "2024-07-29T23:47:00.434941905Z"
     description: Domain microservice
@@ -3180,4 +3191,4 @@ entries:
     urls:
     - https://github.com/ortelius/scec-deppkg/releases/download/scec-deppkg-11.0.11/scec-deppkg-11.0.11.tgz
     version: 11.0.11
-generated: "2024-07-29T23:47:00.43462223Z"
+generated: "2024-07-30T17:37:39.306278985Z"

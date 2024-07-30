@@ -450,8 +450,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 			}
 
 			aql = `FOR vuln IN vulns
-					FOR affected in vuln.affected
-						FILTER affected.package.name == @name
+						FILTER @name in (vuln.affected[*].package.name)
 						RETURN DISTINCT merge({ID: vuln._key}, vuln)`
 
 			if len(strings.TrimSpace(purl)) > 0 {
@@ -468,10 +467,8 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 				}
 
 				aql = `FOR vuln IN vulns
-						FOR affected in vuln.affected
-							FILTER affected.package.name == @name OR
-								SPLIT(affected.package.purl,'?') == @purl
-								RETURN DISTINCT merge({ID: vuln._key}, vuln)`
+						FILTER @purl in (vuln.purls) or @name in (vuln.affected[*].package.name)
+						RETURN DISTINCT merge({ID: vuln._key}, vuln)`
 			}
 
 			// run the query with patameters

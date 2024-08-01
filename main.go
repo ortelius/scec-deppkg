@@ -462,13 +462,19 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 				purl := parts[0]
 
 				parameters = map[string]interface{}{ // parameters
-					"name": pkgInfo.Name,
 					"purl": purl,
 				}
 
-				aql = `FOR vuln IN vulns
-						FILTER @purl in (vuln.purls) or @name in (vuln.affected[*].package.name)
-						RETURN DISTINCT merge({ID: vuln._key}, vuln)`
+				aql = `LET purlDoc = (
+							FOR p IN purls
+							FILTER p.purl == @purl
+							RETURN p
+						)
+						FILTER LENGTH(purlDoc) > 0
+
+						FOR vuln, edge, path IN 1..1 OUTBOUND purlDoc[0]._id GRAPH 'vulnGraph'
+							RETURN DISTINCT merge({ID: vuln._key}, vuln)`
+
 			}
 
 			// run the query with patameters

@@ -27,7 +27,7 @@ import (
 )
 
 var logger = database.InitLogger()
-var dbconn = database.InitializeDB("sbom")
+var dbconn = database.InitializeDatabase()
 var licensesMap = make(map[string]License)
 
 // License represents the structure of each license in the JSON data

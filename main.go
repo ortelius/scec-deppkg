@@ -590,11 +590,11 @@ func NewSBOM(c *fiber.Ctx) error {
 	}
 
 	// update existing docs and add if missing
-	if _, err = dbconn.Collection.CreateDocumentWithOptions(ctx, sbom, options); err != nil {
+	if _, err = dbconn.Collections["sbom"].CreateDocumentWithOptions(ctx, sbom, options); err != nil {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
 	}
 
-	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), sbom.Key)
+	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collections["sbom"].Name(), dbconn.Database.Name(), sbom.Key)
 
 	dhurl := c.BaseURL()
 
@@ -674,11 +674,11 @@ func NewProvenance(c *fiber.Ctx) error {
 	// add the package to the database.  Ignore if it already exists since it will be identical
 	var resp arangodb.CollectionDocumentCreateResponse
 
-	if resp, err = dbconn.Collection.CreateDocument(ctx, provenance); err != nil && !shared.IsConflict(err) {
+	if resp, err = dbconn.Collections["provenance"].CreateDocument(ctx, provenance); err != nil && !shared.IsConflict(err) {
 		logger.Sugar().Errorf("Failed to create document: %v", err)
 	}
 	meta = resp.DocumentMeta
-	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collection.Name(), dbconn.Database.Name(), meta.Key)
+	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collections["provenance"].Name(), dbconn.Database.Name(), meta.Key)
 
 	var res model.ResponseKey
 	res.Key = provenance.Key

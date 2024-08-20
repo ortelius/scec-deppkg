@@ -260,7 +260,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 
 		// query the packages that match the key or name
 		aql := `FOR sbom IN sbom
-			FILTER sbom._key == @key
+			FILTER sbom._key == @key OR sbom.cid == @key
 			FOR packages IN sbom.content.components
 				LET lics = LENGTH(packages.licenses) > 0
 				? (FOR lic IN packages.licenses
@@ -319,7 +319,7 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 	}
 
 	aql := `FOR sbom IN sbom
-			FILTER sbom._key == @key
+			FILTER sbom._key == @key OR sbom.cid == @key
 			FOR packages IN sbom.content.components
 				LET purl = packages.purl != null ? packages.purl : CONCAT("pkg:swid/", packages.swid.name, "@", packages.swid.version, "?tag_id=", packages.swid.tagId)
 
@@ -402,7 +402,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 		}
 
 		aql := `FOR sbom IN sbom
-				FILTER sbom._key == @key
+				FILTER sbom._key == @key OR sbom.cid == @key
 				FOR packages IN sbom.content.components
 					LET purl = packages.purl != null ? packages.purl : CONCAT("pkg:swid/", packages.swid.name, "@", packages.swid.version, "?tag_id=", packages.swid.tagId)
 
@@ -570,9 +570,17 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	// for backward compatibility skip creating a NFT if the compid is part of the POST
 	// this will enable mapping of the sbom to the compid in the postgresdb
-	if sbom.Key == "" {
-		cid, dbStr := database.MakeNFT(sbom)        // normalize the object into NFTs and JSON string for db persistence
-		logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
+	saveKey := sbom.Key
+
+	cid, dbStr := database.MakeNFT(sbom) // normalize the object into NFTs and JSON string for db persistence
+
+	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
+	sbom.Cid = cid
+
+	if saveKey == "" {
+		sbom.Key = cid
+	} else {
+		sbom.Key = saveKey
 	}
 
 	if sbom.Key == "" {

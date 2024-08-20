@@ -7,7 +7,7 @@ toolchain go1.22.6
 require (
 	github.com/arangodb/go-driver/v2 v2.1.0
 	github.com/gofiber/fiber/v2 v2.52.5
-	github.com/ortelius/scec-commons v0.1.34
+	github.com/ortelius/scec-commons v0.1.36
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/swaggo/swag v1.16.3
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa
@@ -61,7 +61,7 @@ require (
 	github.com/valyala/fasthttp v1.55.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect

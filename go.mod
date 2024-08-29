@@ -7,7 +7,7 @@ toolchain go1.22.6
 require (
 	github.com/arangodb/go-driver/v2 v2.1.0
 	github.com/gofiber/fiber/v2 v2.52.5
-	github.com/ortelius/scec-commons v0.1.39
+	github.com/ortelius/scec-commons v0.1.43
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/swaggo/swag v1.16.3
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa

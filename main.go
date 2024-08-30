@@ -363,6 +363,7 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 		req, err := http.NewRequest("POST", dhurl+"/msapi/purl2comp", bytes.NewBuffer(jsonData))
 		if err != nil {
 			logger.Sugar().Infoln("Error creating request:", err)
+			return
 		}
 
 		req.Header.Set("Content-Type", "application/json")
@@ -570,18 +571,11 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	// for backward compatibility skip creating a NFT if the compid is part of the POST
 	// this will enable mapping of the sbom to the compid in the postgresdb
-	saveKey := sbom.Key
 
 	cid, dbStr := database.MakeNFT(sbom) // normalize the object into NFTs and JSON string for db persistence
 
 	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 	sbom.Cid = cid
-
-	if saveKey == "" {
-		sbom.Key = cid
-	} else {
-		sbom.Key = saveKey
-	}
 
 	if sbom.Key == "" {
 		return c.Status(503).Send([]byte("Key not defined"))
@@ -614,15 +608,15 @@ func NewSBOM(c *fiber.Ctx) error {
 	if err != nil {
 		logger.Sugar().Infoln("No https available:", err)
 		dhurl = c.BaseURL()
-	}
+	} else {
+		defer resp.Body.Close()
 
-	defer resp.Body.Close()
-
-	// Check if the response is a redirect
-	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
-		dhurl = resp.Header.Get("Location")
-	} else if resp.StatusCode != 200 {
-		dhurl = c.BaseURL()
+		// Check if the response is a redirect
+		if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
+			dhurl = resp.Header.Get("Location")
+		} else if resp.StatusCode != 200 {
+			dhurl = c.BaseURL()
+		}
 	}
 
 	// dhurl := "http://localhost:5003"
@@ -710,9 +704,9 @@ func setupRoutes(app *fiber.App) {
 
 	app.Get("/swagger/*", swagger.HandlerDefault) // handle displaying the swagger
 	app.Get("/msapi/packages", GetPackages)       // list of packages
-	app.Get("/msapi/package", GetPackages4SBOM)   // single package based on name or key
+	app.Get("/msapi/package", GetPackages4SBOM)   // get all the packages in an sbom based on a key
 	app.Get("/msapi/sbomtype", SBOMType)          // tell client that this microservice supports a full SBOM on the SBOM Post
-	app.Post("/msapi/package", NewSBOM)           // save a single package
+	app.Post("/msapi/package", NewSBOM)           // save a sbom, if compid is defined then add to comp2sbom graph
 	app.Post("/msapi/provenance", NewProvenance)  // save a single package
 	app.Get("/health", HealthCheck)               // kubernetes health check
 }

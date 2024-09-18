@@ -569,6 +569,8 @@ func NewSBOM(c *fiber.Ctx) error {
 		return c.Status(503).Send([]byte(err.Error()))
 	}
 
+	key := sbom.Key // save the key from the postgresdb if passed in json data
+
 	// for backward compatibility skip creating a NFT if the compid is part of the POST
 	// this will enable mapping of the sbom to the compid in the postgresdb
 
@@ -576,6 +578,10 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	logger.Sugar().Infof("%s=%s\n", cid, dbStr) // log the new nft
 	sbom.Cid = cid
+
+	if key != "" {
+		sbom.Key = key
+	}
 
 	if sbom.Key == "" {
 		return c.Status(503).Send([]byte("Key not defined"))

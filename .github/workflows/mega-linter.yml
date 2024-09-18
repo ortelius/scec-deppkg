@@ -34,11 +34,11 @@ jobs:
       - name: MegaLinter
         id: ml
         # You can override MegaLinter flavor used to have faster performances
-        # More info at https://megalinter.io/flavors/
+        # More info at https://megalinter.io/latest/flavors/
         uses: oxsecurity/megalinter/flavors/go@c217fe8f7bc9207062a084e989bd97efd56e7b9a # v8
         env:
           # All available variables are described in documentation
-          # https://megalinter.io/configuration/
+          # https://megalinter.io/latest/config-file/
           VALIDATE_ALL_CODEBASE: true # Set ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} to validate only diff with main branch
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # ADD YOUR CUSTOM ENV VARIABLES HERE TO OVERRIDE VALUES OF .mega-linter.yml AT THE ROOT OF YOUR REPOSITORY

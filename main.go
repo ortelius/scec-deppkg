@@ -206,19 +206,10 @@ func GetPackages4SBOM(c *fiber.Ctx) error {
 	compid := c.Query("compid")
 	appid := c.Query("appid")
 
-	if appid != "" {
-		appid = strings.ReplaceAll(appid, "ap", "")
-		appid = strings.ReplaceAll(appid, "av", "")
-		appid = strings.ReplaceAll(appid, "co", "")
-		appid = strings.ReplaceAll(appid, "cv", "")
-	}
-
 	keys := strings.Split(appid, ",")
 	deptype := c.Query("deptype")
 
 	if compid != "" {
-		compid = strings.ReplaceAll(compid, "co", "")
-		compid = strings.ReplaceAll(compid, "cv", "")
 		keys = append(keys, compid)
 	}
 
@@ -253,6 +244,12 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 		if key == "" {
 			continue
 		}
+
+		compid := key
+		key = strings.ReplaceAll(key, "ap", "")
+		key = strings.ReplaceAll(key, "av", "")
+		key = strings.ReplaceAll(key, "co", "")
+		key = strings.ReplaceAll(key, "cv", "")
 
 		parameters := map[string]interface{}{ // parameters
 			"key": key,
@@ -299,6 +296,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 				logger.Sugar().Errorf("Failed to read document: %v", err)
 			}
 
+			pkg.CompID = compid
 			pkg.URL = getLicenseURL(licensesMap, pkg.License)
 
 			packages = append(packages, pkg)
@@ -398,6 +396,12 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 			continue
 		}
 
+		compid := key
+		key = strings.ReplaceAll(key, "ap", "")
+		key = strings.ReplaceAll(key, "av", "")
+		key = strings.ReplaceAll(key, "co", "")
+		key = strings.ReplaceAll(key, "cv", "")
+
 		parameters := map[string]interface{}{ // parameters
 			"key": key,
 		}
@@ -435,6 +439,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 			}
 
 			purl := pkg.Purl
+			pkg.CompID = compid
 
 			pkgInfo, _ := models.PURLToPackage(purl)
 
@@ -503,6 +508,7 @@ func GetCVEs(keys []string) ([]*model.PackageCVE, error) {
 					cvelist[vuln.ID] = true
 
 					cvepkg.Key = pkg.Key
+					cvepkg.CompID = pkg.CompID
 					cvepkg.Language = pkg.Language
 					cvepkg.Name = pkg.Name
 					cvepkg.URL = pkg.URL

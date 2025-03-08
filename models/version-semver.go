@@ -41,11 +41,11 @@ func compareBuildComponents(a, b string) int {
 }
 
 func compareSemverBuildComponents(a, b []string) int {
-	min := min(len(a), len(b))
+	minVal := min(len(a), len(b))
 
 	var compare int
 
-	for i := 0; i < min; i++ {
+	for i := 0; i < minVal; i++ {
 		ai, aIsNumber := convertToBigInt(a[i])
 		bi, bIsNumber := convertToBigInt(b[i])
 

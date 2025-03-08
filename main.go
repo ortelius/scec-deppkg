@@ -259,6 +259,7 @@ func GetLicenses(keys []string) []*model.PackageLicense {
 		aql := `FOR sbom IN sbom
 			FILTER sbom._key == @key OR sbom.cid == @key
 			FOR packages IN sbom.content.components
+				FILTER LENGTH(packages.name) > 0
 				LET lics = LENGTH(packages.licenses) > 0
 				? (FOR lic IN packages.licenses
 					FILTER LENGTH(packages.licenses) > 0

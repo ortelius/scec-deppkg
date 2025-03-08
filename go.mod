@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.4
 
 require (
-	github.com/arangodb/go-driver/v2 v2.1.2
+	github.com/arangodb/go-driver/v2 v2.1.3
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/ortelius/scec-commons v0.1.47
 	github.com/package-url/packageurl-go v0.1.3

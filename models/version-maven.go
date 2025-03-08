@@ -138,7 +138,7 @@ func newMavenNullVersionToken(token mavenVersionToken) mavenVersionToken {
 }
 
 func (mv MavenVersion) lessThan(mw MavenVersion) bool {
-	max := maxInt(len(mv.tokens), len(mw.tokens))
+	max := max(len(mv.tokens), len(mw.tokens))
 
 	var left mavenVersionToken
 	var right mavenVersionToken

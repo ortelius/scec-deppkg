@@ -41,7 +41,7 @@ func compareBuildComponents(a, b string) int {
 }
 
 func compareSemverBuildComponents(a, b []string) int {
-	min := minInt(len(a), len(b))
+	min := min(len(a), len(b))
 
 	var compare int
 

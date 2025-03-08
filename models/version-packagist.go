@@ -53,7 +53,7 @@ func comparePackagistSpecialVersions(a, b string) int {
 }
 
 func comparePackagistComponents(a, b []string) int {
-	min := minInt(len(a), len(b))
+	min := min(len(a), len(b))
 
 	var compare int
 

@@ -44,7 +44,7 @@ func (components *Components) Fetch(n int) *big.Int {
 
 // Cmp detemines if the Component is in the list of Components
 func (components *Components) Cmp(b Components) int {
-	numberOfComponents := maxInt(len(*components), len(b))
+	numberOfComponents := max(len(*components), len(b))
 
 	for i := 0; i < numberOfComponents; i++ {
 		diff := components.Fetch(i).Cmp(b.Fetch(i))
@@ -69,22 +69,6 @@ func convertToBigInt(str string) (*big.Int, bool) {
 	i, ok := new(big.Int).SetString(str, 10)
 
 	return i, ok
-}
-
-func minInt(x, y int) int {
-	if x > y {
-		return y
-	}
-
-	return x
-}
-
-func maxInt(x, y int) int {
-	if x < y {
-		return y
-	}
-
-	return x
 }
 
 func fetch(slice []string, i int, def string) string {

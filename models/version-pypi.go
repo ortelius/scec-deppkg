@@ -283,7 +283,7 @@ func (pv PyPIVersion) compareDev(pw PyPIVersion) int {
 
 // Compares the local segment of each version
 func (pv PyPIVersion) compareLocal(pw PyPIVersion) int {
-	min := minInt(len(pv.local), len(pw.local))
+	min := min(len(pv.local), len(pw.local))
 
 	var compare int
 

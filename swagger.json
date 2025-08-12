@@ -1,77 +1,101 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "description": "RestAPI for the package Object\n![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)\n![license](https://img.shields.io/github/license/ortelius/.github)\n\n![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)\n[![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)\n![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)\n[![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)\n\n![Discord](https://img.shields.io/discord/722468819091849316)",
-    "title": "Ortelius v11 Package Microservice",
-    "termsOfService": "http://swagger.io/terms/",
-    "contact": {
-      "name": "Ortelius Google Group",
-      "email": "ortelius-dev@googlegroups.com"
+    "swagger": "2.0",
+    "info": {
+        "description": "RestAPI for the package Object\n![Release](https://img.shields.io/github/v/release/ortelius/scec-deppkg?sort=semver)\n![license](https://img.shields.io/github/license/ortelius/.github)\n\n![Build](https://img.shields.io/github/actions/workflow/status/ortelius/scec-deppkg/build-push-chart.yml)\n[![MegaLinter](https://github.com/ortelius/scec-deppkg/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/ortelius/scec-deppkg/actions?query=workflow%3AMegaLinter+branch%3Amain)\n![CodeQL](https://github.com/ortelius/scec-deppkg/workflows/CodeQL/badge.svg)\n[![OpenSSF-Scorecard](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg/badge)](https://api.securityscorecards.dev/projects/github.com/ortelius/scec-deppkg)\n\n![Discord](https://img.shields.io/discord/722468819091849316)",
+        "title": "Ortelius v11 Package Microservice",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Ortelius Google Group",
+            "email": "ortelius-dev@googlegroups.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "11.0.0"
     },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    },
-    "version": "11.0.0"
-  },
-  "host": "localhost:3000",
-  "basePath": "/msapi/package",
-  "paths": {
-    "/msapi/package": {
-      "get": {
-        "description": "Get a list of Packages.",
-        "consumes": ["*/*"],
-        "produces": ["application/json"],
-        "tags": ["Packages"],
-        "summary": "Get a List of Packages that are like the passed package name and version",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
+    "host": "localhost:3000",
+    "basePath": "/msapi/package",
+    "paths": {
+        "/msapi/package": {
+            "get": {
+                "description": "Get a list of Packages.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Packages"
+                ],
+                "summary": "Get a List of Packages that are like the passed package name and version",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/msapi/package/:key": {
+            "get": {
+                "description": "Get a package based on the _key or name.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "package"
+                ],
+                "summary": "Get a Package",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/msapi/provenance": {
+            "post": {
+                "description": "Create a new Provenance and persist it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "provenance"
+                ],
+                "summary": "Upload Provenance JSON",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/msapi/sbom": {
+            "post": {
+                "description": "Create a new SBOM and persist it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sbom"
+                ],
+                "summary": "Upload an SBOM",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
         }
-      }
-    },
-    "/msapi/package/:key": {
-      "get": {
-        "description": "Get a package based on the _key or name.",
-        "consumes": ["*/*"],
-        "produces": ["application/json"],
-        "tags": ["package"],
-        "summary": "Get a Package",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/msapi/provenance": {
-      "post": {
-        "description": "Create a new Provenance and persist it",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["provenance"],
-        "summary": "Upload Provenance JSON",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/msapi/sbom": {
-      "post": {
-        "description": "Create a new SBOM and persist it",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["sbom"],
-        "summary": "Upload an SBOM",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
     }
-  }
 }

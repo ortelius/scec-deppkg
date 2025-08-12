@@ -1,20 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "group:all"
-  ],
-  "ignorePaths": [
-    "chart/**"
-  ],
-  "schedule": [
-    "every 1 hours every weekday"
-  ],
+  "extends": ["config:recommended", "group:all"],
+  "ignorePaths": ["chart/**"],
+  "schedule": ["every 1 hours every weekday"],
   "prHourlyLimit": 4,
   "pip_requirements": {
-    "fileMatch": [
-      "(^|/)requirements\\.in$"
-    ]
+    "fileMatch": ["(^|/)requirements\\.in$"]
   },
   "groupName": "all dependencies",
   "groupSlug": "all",
@@ -27,19 +18,12 @@
       "groupSlug": "all",
       "automerge": true,
       "autoApprove": true,
-      "matchPackageNames": [
-        "/.*/"
-      ]
+      "matchPackageNames": ["/.*/"]
     },
     {
-      "matchManagers": [
-        "gomod"
-      ],
+      "matchManagers": ["gomod"],
       "enabled": false,
-      "matchPackageNames": [
-        "/^go/",
-        "/^toolchain/"
-      ]
+      "matchPackageNames": ["/^go/", "/^toolchain/"]
     }
   ],
   "separateMajorMinor": false,

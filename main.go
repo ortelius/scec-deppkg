@@ -638,23 +638,14 @@ func NewSBOM(c *fiber.Ctx) error {
 
 	var cookies []*http.Cookie
 
-	/* 	var resp2 *http.Response
-	   	resp2, err = http.Get("http://localhost:8181/dmadminweb/API/login?user=admin&pass=admin")
-
-	   	if err == nil {
-	   		cookies = resp2.Cookies()
-	   		resp2.Body.Close()
-	   	} */
-
-	// Visit all cookies in the request header
-	c.Request().Header.VisitAllCookie(func(key, value []byte) {
-		// Create a new http.Cookie and add it to the cookies array
+	reqCookies := c.Request().Header.Cookies()
+	for key, value := range reqCookies {
 		cookie := &http.Cookie{
 			Name:  string(key),
 			Value: string(value),
 		}
 		cookies = append(cookies, cookie)
-	})
+	}
 
 	Purl2Comp(dhurl, cookies, sbom.Key)
 

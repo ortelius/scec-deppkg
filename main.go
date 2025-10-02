@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httputil"
+	"runtime/debug"
 	"sort"
 	"strings"
 
@@ -53,15 +55,52 @@ func fetchAndParseLicenses(licensesMap map[string]License) {
 	// Fetch the JSON data from the URL
 	url := "https://github.com/spdx/license-list-data/raw/main/json/licenses.json"
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		logger.Sugar().Errorf("Failed to create request: %v\nStack trace:\n%s", err, debug.Stack())
+		return
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		reqDump, _ := httputil.DumpRequestOut(req, true)
+		logger.Sugar().Errorf(
+			"HTTP request failed:\n\n=== REQUEST ===\n%s\n\n=== ERROR ===\n%v\n\n=== STACK TRACE ===\n%s",
+			string(reqDump),
+			err,
+			debug.Stack(),
+		)
 		return
 	}
 	defer resp.Body.Close()
 
+	// Check status code
+	if resp.StatusCode != 200 {
+		reqDump, _ := httputil.DumpRequestOut(req, true)
+		respDump, _ := httputil.DumpResponse(resp, true)
+		logger.Sugar().Errorf(
+			"Non-200 status code: %d\n\n=== REQUEST ===\n%s\n\n=== RESPONSE ===\n%s\n\n=== STACK TRACE ===\n%s",
+			resp.StatusCode,
+			string(reqDump),
+			string(respDump),
+			debug.Stack(),
+		)
+		return
+	}
+
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		reqDump, _ := httputil.DumpRequestOut(req, true)
+		respDump, _ := httputil.DumpResponse(resp, true)
+		logger.Sugar().Errorf(
+			"Failed to read response body:\n\n=== REQUEST ===\n%s\n\n=== RESPONSE ===\n%s\n\n=== ERROR ===\n%v\n\n=== STACK TRACE ===\n%s",
+			string(reqDump),
+			string(respDump),
+			err,
+			debug.Stack(),
+		)
 		return
 	}
 
@@ -361,7 +400,7 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 		// Create a new HTTP request
 		req, err := http.NewRequest("POST", dhurl+"/msapi/purl2comp", bytes.NewBuffer(jsonData))
 		if err != nil {
-			logger.Sugar().Infoln("Error creating request:", err)
+			logger.Sugar().Errorf("Error creating request: %v\nStack trace:\n%s", err, debug.Stack())
 			return
 		}
 
@@ -376,10 +415,30 @@ func Purl2Comp(dhurl string, cookies []*http.Cookie, key string) {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			logger.Sugar().Infoln("Error sending request:", err)
+			reqDump, _ := httputil.DumpRequestOut(req, true)
+			logger.Sugar().Errorf(
+				"HTTP request failed:\n\n=== REQUEST ===\n%s\n\n=== ERROR ===\n%v\n\n=== STACK TRACE ===\n%s",
+				string(reqDump),
+				err,
+				debug.Stack(),
+			)
 			return
 		}
 		defer resp.Body.Close()
+
+		// Check status code
+		if resp.StatusCode != 200 {
+			reqDump, _ := httputil.DumpRequestOut(req, true)
+			respDump, _ := httputil.DumpResponse(resp, true)
+			logger.Sugar().Errorf(
+				"Non-200 status code: %d\n\n=== REQUEST ===\n%s\n\n=== RESPONSE ===\n%s\n\n=== STACK TRACE ===\n%s",
+				resp.StatusCode,
+				string(reqDump),
+				string(respDump),
+				debug.Stack(),
+			)
+			return
+		}
 	}
 }
 
@@ -616,19 +675,34 @@ func NewSBOM(c *fiber.Ctx) error {
 	dhurl = strings.Replace(dhurl, "http:", "https:", 1)
 
 	// Send an HTTP HEAD request to check the redirect
-	//nolint:gosec
-	resp, err := http.Head(dhurl)
+	req, err := http.NewRequest("HEAD", dhurl, nil)
 	if err != nil {
-		logger.Sugar().Infoln("No https available:", err)
+		logger.Sugar().Errorf("Failed to create HEAD request: %v\nStack trace:\n%s", err, debug.Stack())
 		dhurl = c.BaseURL()
 	} else {
-		defer resp.Body.Close()
-
-		// Check if the response is a redirect
-		if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
-			dhurl = resp.Header.Get("Location")
-		} else if resp.StatusCode != 200 {
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			logger.Sugar().Infof("No https available: %v", err)
 			dhurl = c.BaseURL()
+		} else {
+			defer resp.Body.Close()
+
+			// Check if the response is a redirect
+			if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
+				dhurl = resp.Header.Get("Location")
+			} else if resp.StatusCode != 200 {
+				reqDump, _ := httputil.DumpRequestOut(req, true)
+				respDump, _ := httputil.DumpResponse(resp, true)
+				logger.Sugar().Errorf(
+					"Non-200 status code: %d\n\n=== REQUEST ===\n%s\n\n=== RESPONSE ===\n%s\n\n=== STACK TRACE ===\n%s",
+					resp.StatusCode,
+					string(reqDump),
+					string(respDump),
+					debug.Stack(),
+				)
+				dhurl = c.BaseURL()
+			}
 		}
 	}
 

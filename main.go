@@ -669,60 +669,60 @@ func NewSBOM(c *fiber.Ctx) error {
 	}
 
 	logger.Sugar().Infof("Created document in collection '%s' in db '%s' key='%s'\n", dbconn.Collections["sbom"].Name(), dbconn.Database.Name(), sbom.Key)
+	/*
+		dhurl := c.BaseURL()
 
-	dhurl := c.BaseURL()
+		dhurl = strings.Replace(dhurl, "http:", "https:", 1)
 
-	dhurl = strings.Replace(dhurl, "http:", "https:", 1)
-
-	// Send an HTTP HEAD request to check the redirect
-	req, err := http.NewRequest("HEAD", dhurl, nil)
-	if err != nil {
-		logger.Sugar().Errorf("Failed to create HEAD request: %v\nStack trace:\n%s", err, debug.Stack())
-		dhurl = c.BaseURL()
-	} else {
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		// Send an HTTP HEAD request to check the redirect
+		req, err := http.NewRequest("HEAD", dhurl, nil)
 		if err != nil {
-			logger.Sugar().Infof("No https available: %v", err)
+			logger.Sugar().Errorf("Failed to create HEAD request: %v\nStack trace:\n%s", err, debug.Stack())
 			dhurl = c.BaseURL()
 		} else {
-			defer resp.Body.Close()
-
-			// Check if the response is a redirect
-			if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
-				dhurl = resp.Header.Get("Location")
-			} else if resp.StatusCode != 200 {
-				reqDump, _ := httputil.DumpRequestOut(req, true)
-				respDump, _ := httputil.DumpResponse(resp, true)
-				logger.Sugar().Errorf(
-					"Non-200 status code: %d\n\n=== REQUEST ===\n%s\n\n=== RESPONSE ===\n%s\n\n=== STACK TRACE ===\n%s",
-					resp.StatusCode,
-					string(reqDump),
-					string(respDump),
-					debug.Stack(),
-				)
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				logger.Sugar().Infof("No https available: %v", err)
 				dhurl = c.BaseURL()
+			} else {
+				defer resp.Body.Close()
+
+				// Check if the response is a redirect
+				if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
+					dhurl = resp.Header.Get("Location")
+				} else if resp.StatusCode != 200 {
+					reqDump, _ := httputil.DumpRequestOut(req, true)
+					respDump, _ := httputil.DumpResponse(resp, true)
+					logger.Sugar().Errorf(
+						"Non-200 status code: %d\n\n=== REQUEST ===\n%s\n\n=== RESPONSE ===\n%s\n\n=== STACK TRACE ===\n%s",
+						resp.StatusCode,
+						string(reqDump),
+						string(respDump),
+						debug.Stack(),
+					)
+					dhurl = c.BaseURL()
+				}
 			}
 		}
-	}
 
-	// dhurl := "http://localhost:5003"
-	dhurl = strings.Trim(dhurl, "/")
-	logger.Sugar().Infof("dhurl=%s", dhurl)
+		// dhurl := "http://localhost:5003"
+		dhurl = strings.Trim(dhurl, "/")
+		logger.Sugar().Infof("dhurl=%s", dhurl)
 
-	var cookies []*http.Cookie
+		var cookies []*http.Cookie
 
-	reqCookies := c.Request().Header.Cookies()
-	for key, value := range reqCookies {
-		cookie := &http.Cookie{
-			Name:  string(key),
-			Value: string(value),
+		reqCookies := c.Request().Header.Cookies()
+		for key, value := range reqCookies {
+			cookie := &http.Cookie{
+				Name:  string(key),
+				Value: string(value),
+			}
+			cookies = append(cookies, cookie)
 		}
-		cookies = append(cookies, cookie)
-	}
 
-	Purl2Comp(dhurl, cookies, sbom.Key)
-
+		Purl2Comp(dhurl, cookies, sbom.Key)
+	*/
 	var res model.ResponseKey
 	res.Key = sbom.Key
 	return c.JSON(res) // return the package object in JSON format.  This includes the new _key
